@@ -1,0 +1,251 @@
+---
+title: "Lecture 2 MATH 390.4 Queens College"
+author: "Professor Adam Kapelner"
+date: "January 31, 2018"
+---
+
+Let's talk about some simple operations on vectors:
+
+```{r}
+x = seq(1, 100) 
+length(x) #how long is this vector
+head(x) #the first elements
+tail(x) #the last elements
+head(x, 11) #the first 11 elements
+tail(x, 13) #the last 13 elements
+x[1] #R has one-based indexing while C, C++, Python, Java, have zero-based indexing
+x[6]
+x[length(x)] #unfortunately no "-1" last index convenience...
+x[c(2, 77)]
+x[2 : 77]
+x[seq(1, 100, by = 2)] #odd numbers
+x[-1] #everything but 1
+x[-(1 : 10)] #everything but 1 - 10
+x[-seq(2, 100, by = 2)] #another way to see odd numbers
+```
+
+and comparisons on vectors
+
+```{r}
+x = 1 : 5
+y = 1 : 5
+x == y
+all.equal(x, y)
+```
+
+Most operations in R are vector-operations:
+
+```{r}
+x = 1 : 5
+x + 2
+x * 2
+x^2
+
+```
+
+
+A note about logical vectors:
+
+```{r}
+x = c(TRUE, TRUE)
+y = c(TRUE, FALSE)
+x = c(FALSE, FALSE)
+x & y
+x | y
+x && y #vector AND - confusing - recommend not to use this
+x || y #vector OR - confusing - recommend not to use this
+as.numeric(x)
+sum(x) #does the numeric conversion for you
+any(x) #convenient function
+```
+
+
+Sampling is very important:
+
+```{r}
+x = 1 : 100
+sample(x, 3)
+sample(x, 101)
+sample(x, 3, replace = TRUE)
+sample(x, 101, replace = TRUE)
+sample(x) #default is length of the vector i.e. just shuffles
+```
+
+There are many "illegal" computation values in R: NaN, Inf, -Inf,
+
+```{r}
+1 / 0 #unlike C, Java -- no error... handles this natively
+1 / 0 == Inf #this works
+0 / 0 #unlike C, Java -- no error... handles this natively
+x = 0 / 0
+x == NaN #beware!!
+is.nan(x)
+-1 / 0
+1 + 1 / 0
+1 + Inf
+1 / Inf
+1 / (-Inf)
+1 / NaN
+log(0)
+log(-1)
+sqrt(-1)
+```
+
+There are a couple more "illegalish" values: NA, NULL, empty vectors
+
+```{r}
+NA #this is the value of missing
+x = NA
+x == NA #beware!!
+is.na(x)
+x = NULL #special reserved primitive for data that is "undefined"
+x == NULL #strange... and beware
+is.null(x)
+#let's look at that strange thing
+x = 1 : 3
+x[1]
+x[0] #a vector with zero elements -- a "null vector" of sorts
+length(x[0])
+```
+
+Now let's look at data types again. These types are the data types we learned in class.
+
+```{r}
+x = c(1, 2, 3, 4, 5)
+class(x)
+x = seq(1, 5)
+class(x) #integer and numeric are approximately the same for purposes of this class
+x = sample(rep(c(0, 1), 50))
+x #binary variable?
+x = c("a", "b", "c", "d")
+x
+class(x)
+x = rep(x, 5)
+x
+class(x)
+x = factor(x)
+x
+?factor
+levels = c("low", "medium", "high")
+x_char = sample(rep(levels, 10))
+x = factor(x_char)
+x #nominal categorical variable
+x = factor(x_char, levels = levels, ordered = TRUE)
+x #ordinal categorical variable
+as.numeric(x) #coerce this variable to a number... result makes sense
+```
+
+Data which is of class factor can be used in mathematical models that we build just like numeric. It will, by default be reduced to binary variables.
+
+Let's now do some probability. Let's realize a few iid random variable models. Let's say $X_1, ..., X_{10} \iid$ ...
+
+* binomial
+* geometric
+* poisson
+* standard uniform --- all numbers between 0 and 1 equally likely
+* exponential
+* normal with mean 5 and standard deviation 2
+
+```{r}
+num_rvs = 10 #good programming practice to declare shared data
+
+x = rbinom(num_rvs, size = 5, prob = 0.1)
+x #returns as a vector
+?rbinom
+x = rgeom(num_rvs, prob = 0.1)
+x
+?rgeom
+x = rpois(num_rvs, lambda = 2)
+x
+?rpois
+x = runif(num_rvs)
+x
+?runif
+x = rexp(num_rvs, rate = 1)
+x
+?rexp
+x = rnorm(num_rvs, mean = 5, sd = 2)
+x
+?rnorm
+```
+
+Sorting is also a key skill in R:
+
+```{r}
+x = rbinom(50, size = 20, prob = 0.2)
+x
+sort(x)
+sort(x, decreasing = TRUE)
+```
+
+Now that we finished vectors, let's learn about the matrix object. Let's use the dimension of the learning problem in class.
+
+```{r}
+n = 100 #number of historical objects: the people
+p = 3 #number of features about each
+
+random_junk = round(runif(n * p), 2)
+random_junk
+X = matrix(random_junk, nrow = n, ncol = p)
+X
+X[1, 1]
+X[1, ] #first row
+class(X[1, ]) #note: not matrix anymore
+X[1, , drop = FALSE]
+class(X[1, , drop = FALSE]) #still matrix... this matters for matrix computations (coming soon)
+X[, 1] #first column
+class(X[, 1]) #note: not matrix anymore
+X[, 1, drop = FALSE]
+class(X[, 1, drop = FALSE])
+```
+
+
+## First modeling exercise
+
+Before we model, let's fabricate the training data! Let's try to build a data matrix similar to the one in the class example. Let's imagine $n = 100$ and $x_1$ is salary, $x_2$ is a dummy variable for missing loan payment in their credit history, $x_3$ is a ordinal variable for crime type coded 0, 1, 2 or 3.
+
+We can "make up" a dataset using the sampling we just learned. We will also introduce the "matrix" data type below:
+
+```{r}
+X = matrix(NA, nrow = n, ncol = p) #n, p defined earlier
+X
+```
+
+Why should we fill up this matrix with NA's? No technical reason; it is done for a practical reason. Every value is currently "missing" until it's filled in i.e. it will let you know if you didn't fill any of the values.
+
+We can also name rows and columns
+
+```{r}
+X = matrix(NA, nrow = n, ncol = p) #n, p defined earlier
+X
+```
+
+Let's pretend salary is normally distributed with mean \$50,000 and standard error \$20,000. Let's 
+
+
+Let's pretend only 5% of people don't pay back their loans. 
+
+Also, 50\% of people have no crime, 40\% have an infraction, 8\% a misdimeanor and 2\% a felony.
+
+
+
+
+
+
+
+
+It worth knowing a couple more data structures in R. These are not "data [science] types", these are "[computer science] data types". 
+
+The first is arrays which are multidimensional vectors
+
+```{r}
+x = array(1 : 5, 5)
+x
+X = array(1 : 25, c(5, 5))
+X
+X = array(1 : 125, c(5, 5, 5))
+X
+```
+
+The second are "lists" which are hashmaps.
+

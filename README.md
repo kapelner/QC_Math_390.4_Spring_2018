@@ -4,7 +4,7 @@ This is the course homepage for Math 390.4 (and Masters level 650.3-02) for the 
 
 ## Lectures
 
-My lectures can be listened to as youtube tracks [(all lectures)](https://www.youtube.com/playlist?list=) and lecture notes are also scanned in as PDF files contributed by students and myself.
+My lectures can be listened to as youtube tracks [(all lectures)](https://www.youtube.com/playlist?list=PLIwvCnCDnF16ZnYs7EyWOEx84RptLjKiD) and lecture notes are also scanned in as PDF files contributed by students and myself.
 
 <!--
 * Lecture 23 [(audio)](https://youtu.be/sBA4Lf_5kUU) [(Alassane Ngaide)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec23ngaide.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec23kap.pdf)

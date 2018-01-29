@@ -1,0 +1,154 @@
+---
+title: "Lecture 1 MATH 390.4 Queens College"
+author: "Professor Adam Kapelner"
+---
+
+This file type "Rmd" is "R Markdown" which allows for text and R interwoven together. 
+
+You can get started with this cheatsheet:
+https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+
+Acknowledgement: I would like to thank Professor Andreas Buja at Wharton as I cribbed lots of his notes.
+
+
+What is R?
+
+* An open-source, free standard for statistical and numerical programming
+* interpreted, scripted and high level (like Python and not like e.g. C++)
+* Has a tremendous developer community and industry community
+* Very good for "one-shot" scripting - very common in data science
+* New stats algorithms and methodologies appear here first!
+* I joke that I'm an R developer for a living
+* History: came from Bell Labs. C --> S --> R
+
+Let's see some R! Since R is interpreted, you can run commands directly into its command line:
+
+```{r}
+5
+```
+
+This is not the most exciting command. The above is called a "chunk" and it tells the R Markdown compiler that there is R code inside those tick marks.
+
+Here's some R code commented:
+
+```{r}
+5 #This will produce the number 5
+```
+
+Everything beyond the "#" is a comment as is ignored during interpretation.
+
+Let's start by using R as a calculator
+
+```{r}
+5 + 5
+5 - 5
+5 / 5
+5 * 5
+5^5 #or 5 ** 5 (not common)
+5 / 3
+5 %% 3
+5 * 5 %% 3
+(5 * 5) %% 3 #note order of operations - use parentheses
+```
+
+You can have multiple statements per line:
+
+```{r}
+5 + 5; 5 - 5
+```
+
+This is considered bad style... only do this when you are making a point.
+
+You can also extend expressions for many lines
+
+```{r}
+5 +
+  5 +
+  5
+```
+Avoid this unless the line gets so long it's difficult to read. Note the "+" at the end of the line so the interpreter knows to keep looking to the next line.
+
+Let's take a look at how to represent numbers using scientific notation
+
+```{R}
+3,125 #commas are illegal
+3.125e3 #scientific notation
+3.125E3 
+3.125E-3
+options(digits = 3)
+3.125E-3
+options(digits = 7) #the default
+```
+
+There are lots of options. Look at the help file:
+
+```{r}
+?options
+```
+
+Let's talk about data types:
+
+```{r}
+TRUE #logical
+class(TRUE)
+1 #numeric
+class(1)
+"A"
+class("A")
+```
+
+All of the above are actually 1-dim vectors. We will explore this later.
+
+Every language has a means of invoking functions. Here are some included famous math functions. R uses parentheses to invoke functions. The quantities within the parentheses are known as "parameters" or "arguments" to the function. Each of these functions takes in one argument:
+
+```{r}
+sqrt(2)
+log(3)
+log10(1000)
+sin(pi) #pi is a hard-wired numerical constant, the only one in the language (I think)
+#note the numerical error
+acos(1)
+exp(1)
+```
+
+To create vectors, we use the "c" function which is short for "combine". This function takes any number of arguments
+
+```{r}
+c(1, 1, 2, 3, 5, 8)
+```
+
+We can also use shorthand "ladder" notation:
+
+```{r}
+1 : 3
+1 : 100
+-3 : 3
+3 : -3
+-(1 : 5)
+```
+
+The "seq" function (short for "sequence") is key for this too:
+
+```{r}
+seq(1, 9) #short for 1 : 9
+seq(1, 9, by = 2)
+seq(1, 9, length.out = 3)
+seq(1, 9, length.out = 4)
+```
+
+So is the "rep" function (short for "replicate"):
+
+```{r}
+rep(1, 10)
+rep(c(1, 2, 3), 10)
+```
+
+
+Every language has a means to assign a piece of data to variables:
+
+```{r}
+x = 1 #I use this...
+x
+x <- 2 #but this is actually preferred according to the the R spec
+x
+```

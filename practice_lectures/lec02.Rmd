@@ -231,7 +231,10 @@ Also, 50\% of people have no crime, 40\% have an infraction, 8\% a misdimeanor a
 
 
 
+It would be nice to keep factor or character information in a matrix... but...
 
+
+So the key data type is the "dataframe". It is an upgraded matrix.
 
 
 It worth knowing a couple more data structures in R. These are not "data [science] types", these are "[computer science] data types". 

@@ -4,6 +4,13 @@ author: "Professor Adam Kapelner"
 date: "February 5, 2018"
 ---
 
+## Programming! Conditional statements, loops, functions
+
+We will now learn how to program in R
+
+
+Now back to the in-class example...
+
 ## First modeling exercise
 
 Before we model, let's fabricate the training data! Let's try to build a data matrix similar to the one in the class example. Let's imagine $n = 100$ and $x_1$ is salary, $x_2$ is a dummy variable for missing loan payment in their credit history, $x_3$ is a ordinal variable for crime type coded 0, 1, 2 or 3.
@@ -25,7 +32,7 @@ nrow(X)
 ncol(X)
 dim(X)
 length(X) #countless bugs!
-c(X) #vectorize a matrix (sometimes useful)
+c(X) #vectorizes / flattens a matrix (sometimes useful)
 ```
 
 Why should we fill up this matrix with NA's? No technical reason; it is done for a practical reason. Every value is currently "missing" until it's filled in i.e. it will let you know if you didn't fill any of the values.
@@ -220,7 +227,7 @@ Note that our matrix is now no longer just $X$; it includes $y$. I could make a 
 ```{r}
 y = X$paid_back_loan
 X$paid_back_loan = NULL #drop column
-Xy = cbind(X, y) 
+Xy = cbind(X, y) #an aside: what do you think the "rbind" function does?
 head(Xy) #make sure that worked
 summary(Xy) #much better now!
 #Note: Xy = X; rm(X) would've been easier
@@ -249,18 +256,32 @@ X = array(1 : 125, c(5, 5, 5))
 X
 ```
 
-The second are "lists" which are hashmaps or dictionaries. if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
+The second are "lists" which are ordered hashmaps or ordered dictionaries. if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
 
 ```{r}
 dict = list()
 dict$a = "first"
 dict$b = "second"
+dict$c = "third"
 dict
 length(dict)
+names(dict) #keys
+unlist(dict) #values
+#three ways to access values by key / ordered location
 dict$a
 dict[["a"]]
-dict[1] #subset of a hash
+dict[[1]] #value of first entered key
+class(dict[[1]])
+dict[[1 : 2]] #bombs
+#now let's try to access a value for a non-existent key / ordered location
+dict$q
+dict[["q"]]
+dict[[4]]
+#convenient means to subset the list
+dict[1]
 class(dict[1])
+dict[1 : 2]
+dict[1 : 4] #bugs bunny...
 ```
 
 Lists conveniently allow all sorts of data types.
@@ -275,9 +296,10 @@ varied_dict[["the last entry"]] = function(x){x^2} #this key is not recommended
 varied_dict
 varied_dict$`the last entry` #note the tick marks (sometimes seen) needed due to spaces in key name
 length(varied_dict)
+names(varied_dict)
 ```
 
-They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world.
+They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world. Note that data.frame objects are implemented as lists as well as many other common R objects.
 
 ## Saving and Loading
 

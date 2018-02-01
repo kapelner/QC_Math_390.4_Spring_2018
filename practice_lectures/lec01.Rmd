@@ -96,6 +96,10 @@ Every language has a means of invoking functions. Here are some included famous 
 ```{r}
 sqrt(2)
 log(3)
+abs(-1)
+floor(1.2)
+ceiling(1.2)
+round(1.2)
 log10(1000)
 sin(pi) #pi is a hard-wired numerical constant, the only one in the language (I think)
 #note the numerical error
@@ -152,7 +156,7 @@ rep(seq(1, 2, by = 0.1), 10)
 
 Every language has a means to assign a piece of data to variables:
 
-```{r}
+sin```{r}
 x = 1 #I use this...
 x
 x <- 1 #but this is actually preferred according to the the R spec

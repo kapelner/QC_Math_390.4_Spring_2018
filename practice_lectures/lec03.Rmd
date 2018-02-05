@@ -434,18 +434,7 @@ We are soon going to upgrade data.frame to data.table which gives us powerful, l
 
 Before we get back to modeling, it is worth knowing a couple more data structures in R. These are not "data [science] types", these are "[computer science] data types". 
 
-The first is arrays i.e. are multidimensional vectors
-
-```{r}
-x = array(1 : 5, 5)
-x
-X = array(1 : 25, c(5, 5))
-X
-X = array(1 : 125, c(5, 5, 5))
-X
-```
-
-The second are "lists" which are ordered hashmaps or ordered dictionaries. if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
+The first are "lists" which are "ordered hashmaps" or "ordered dictionaries" or "hash tables". if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
 
 ```{r}
 dict = list()
@@ -489,6 +478,42 @@ names(varied_dict)
 ```
 
 They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world. Note that data.frame objects are implemented as lists as well as many other common R objects.
+
+
+The second is arrays i.e. are multidimensional vectors
+
+```{r}
+x = array(1 : 5, 5)
+x
+X = array(1 : 25, dim = c(5, 5))
+X
+X = array(1 : 125, dim = c(5, 5, 5))
+X
+X[1, , ]
+X[, 1, ]
+X[, , 1]
+X = array(1 : 125, dim = c(5, 5, 5))
+X
+```
+
+These can be associative arrays too and operate like a hash of vectors across arbitrary dimensions:
+
+```{r}
+X = array(1 : 125, 
+          dim = c(5, 5, 5),
+          dimnames = list(
+            c("A", "B", "C", "D", "E"),
+            c("I", "II", "III", "IV", "V"),
+            c("blue", "red", "green", "yellow", "orange")
+          ))
+X
+X["A", , ]
+X[, "III", ]
+X[, , "orange"]
+X["C", , "orange"]
+X["C", "IV", "orange"]
+```
+
 
 ## Saving and Loading
 

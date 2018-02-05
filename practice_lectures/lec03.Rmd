@@ -6,7 +6,196 @@ date: "February 5, 2018"
 
 ## Programming! Conditional statements, loops, functions
 
-We will now learn how to program in R
+We will now learn how to program in R.
+
+* Conditional Statements (and ways to print to screen too).
+
+```{r}
+x = 3
+if (x > 0){
+  cat("The value of x is", x, "\n") #concatenate and print to screen
+} else {
+  print("The value of x is"); print(x) #each gets its own line
+}
+
+if (x > 0){
+  ##
+} 
+else { ##NOTE: ELSE MUST GO ON SAME LINE AS THE IF'S CLOSE BRACE!!! This is not Java or C++!
+  ##
+}
+
+x = -5
+if (x > 0){
+  cat("The value of x is", x, "\n") #concatenate and print to screen
+} else if (x < -3) { ##NOTE: ELSE MUST GO ON SAME LINE AS THE IF'S CLOSE BRACE!!!
+  print(paste("The value of x is", x, collapse = " ")) #paste with collapse is like a string join
+} else {
+  print("The value of x is"); print(x) #each gets its own line
+}
+```
+
+There is a one line convenience function called ifelse:
+
+```{r}
+x = 3
+a = ifelse(x > 0, 1, -1)
+a
+x = -5 : 5
+a = ifelse(x > 0, 1, -1)
+a
+```
+
+
+
+There is also a switch in R. It is _not_ an official keyword (despite RStudio's endorsement), but it is useful for non-vector character expressions:
+
+```{r}
+ch = "one"
+# ch = c("one", "two")
+switch(ch,
+   "one" = 1,
+   "two" = 2,
+   "three" = 3,
+   -99
+)
+```
+
+
+* Looping
+
+A for loop contains three ingredients: (a) a looping variable joined with keyword "in" to a (b) vector or list (which we will discuss later) and executes over an (c) expression recommended to be enclosed in curly braces:
+
+```{r}
+for (i in 1 : 10){
+  j = i
+  print(j)
+}
+```
+
+Note that the looping variable i still exists but the variable within the looped expression j does not:
+
+```{r}
+i
+j
+```
+
+You can iterate over a vector as well:
+
+```{r}
+vec = seq(1, 10)
+for (i in vec){
+  print(i)
+}
+```
+
+And the vector does not have to be numeric:
+
+```{r}
+vec = c("a", "b", "c")
+for (ch in vec){
+  print(ch)
+}
+```
+
+There is also the while loop but not a "do-while" loop
+
+```{r}
+x = 1
+while (x <= 10){
+  print(x)
+  x = x + 1 #note: there is no "++" incrementing in R
+}
+```
+
+This can also be done using a break:
+
+```{r}
+x = 1
+while (TRUE){
+  print(x)
+  x = x + 1 #note: there is no "++" incrementing in R
+  if (x > 10){
+    break
+  }
+}
+```
+
+The "repeat" keyword is the same as the while-true:
+
+```{r}
+x = 1
+repeat {
+  print(x)
+  x = x + 1 #note: there is no "++" incrementing in R
+  if (x > 10){
+    break
+  }
+}
+```
+
+The final control keyword tells the loop to break the current iteration but continue to the next:
+
+```{r}
+xs = rep(NA, 10)
+xs[3] = 3
+xs[7] = 7
+xs
+
+tot = 0
+for (x in xs){
+  if (is.na(x)){
+    next #move to next element in the list in the for loop
+  }
+  tot = tot + x
+}
+tot
+```
+
+Note: "real" R programmers avoid loops since they are slow. Instead they use the "apply" function (but not "sapply" or "lapply" which are not faster). We will cover these in the future. The latest trend is to use in-line C++ code (we probably won't get to this).
+
+* Functions
+
+```{r}
+my_function = function(x){
+  x
+}
+##You may be used to:
+#int my_function(int x){ 
+#  return x;
+#}
+```
+
+* Functions are objects in R. This is why you are actually assigning the function to an object.
+* We don't need to declare type since R is not "statically typed" (higher level languages usually are not statically typed). Objects can be coerced into different types on the fly (R is "dynamically typed").
+* No need for a "return" statement as the last line is the data that is returned. It is considered bad style to use "return" in R.
+
+Let's make sure this works
+
+```{r}
+my_function(3)
+my_function(x = 3) #you can specify that 3 is the value for argument "x"
+my_function(y = 3) #illegal argument
+```
+
+R is somewhat user friendly as it allows for default argument values, making those arguments optional to specify when calling the function:
+
+```{r}
+my_function = function(x = 1, y = 2, z = 3, p = 4, q = 5, r = 6){
+  (x + y + z) / (p + q + r)
+}
+my_function() #default execution
+my_function(p = 0) #one optional argument specified, others defaulted
+my_function(y = -2, q = 0) #two optional arguments specified, others defaulted
+
+my_function = function(x, y = 2, z = 3, p = 4, q = 5, r = 6){
+  (x + y + z) / (p + q + r)
+}
+my_function() #no dice
+my_function(0) #required argument specified
+my_function(0, q = 7) #required argument specified and one optional argument
+rm(my_function) #can be deleted since it's an object
+```
 
 
 Now back to the in-class example...
@@ -109,12 +298,12 @@ There are other base functions to know:
 ```{r}
 mean(X[, "salary"]) #mean should be "average"!!
 sum(X[, "salary"]) / length(X[, "salary"])
+var(X[, "salary"])
 sd(X[, "salary"])
 median(X[, "salary"])
 min(X[, "salary"])
 max(X[, "salary"])
 IQR(X[, "salary"])
-
 ```
 
 There is also the convenient quantile and inverse quantile function
@@ -122,7 +311,7 @@ There is also the convenient quantile and inverse quantile function
 ```{r}
 quantile(X[, "salary"], probs = 0.5) 
 quantile(X[, "salary"], probs = c(.1, .9))  
-inverse_quantile_obj = ecdf(X[, "salary"])
+inverse_quantile_obj = ecdf(X[, "salary"]) #the "empirical" CDF
 inverse_quantile_obj(50000)
 inverse_quantile_obj(70000)
 inverse_quantile_obj(0)
@@ -200,7 +389,7 @@ summary(X) #much better now!
 str(X)
 ```
 
-Now that we have two categorical variables, we can do a cross tab:
+Now that we have two categorical variables, we can do a "cross tab":
 
 ```{r}
 table(X$has_past_unpaid_loan)
@@ -331,3 +520,4 @@ rm(list = setdiff(ls(), "Xy")) #cleanup again
 ## Intro to ggplot
 ## Missing data na.rm...
 ## data.table stuff
+## Basic statistics - confidence intervals, hypothesis testing

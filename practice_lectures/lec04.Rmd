@@ -1,124 +1,8 @@
 ---
-title: "Lecture 3 MATH 390.4 Queens College"
+title: "Lecture 4 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
 date: "February 7, 2018"
 ---
-
-## Computer Science Sidebar
-
-Before we get back to modeling, it is worth knowing a couple more data structures in R. These are not "data [science] types", these are "[computer science] data types". 
-
-The first are "lists" which are "ordered hashmaps" or "ordered dictionaries" or "hash tables". if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
-
-```{r}
-dict = list()
-dict$a = "first"
-dict$b = "second"
-dict$c = "third"
-dict
-length(dict)
-names(dict) #keys
-dict_unlisted = unlist(dict) #values
-dict_unlisted
-class(dict_unlisted) #i.e. a vector
-#three ways to access values by key / ordered location
-dict$a
-dict[["a"]]
-dict[[1]] #value of first entered key
-class(dict[[1]])
-dict[[1 : 2]] #bombs
-#now let's try to access a value for a non-existent key / ordered location
-dict$q
-dict[["q"]]
-dict[[4]] #bombs
-#convenient means to subset the list
-dict[1]
-class(dict[1])
-dict[1 : 2]
-dict[1 : 4] #this is the reason this type of access is not recommended
-dict = list("first", "second", "third") #no key => value... what happens?
-dict #default keys are the numbers 1, 2, ...
-dict[[1]]
-```
-
-Lists conveniently allow all sorts of data types.
-
-```{r}
-varied_dict = list()
-varied_dict$a = "first"
-varied_dict$b = 2
-varied_dict$c = 1 : 7
-varied_dict$d = matrix(NA, nrow = 2, ncol = 2)
-varied_dict[["the last entry"]] = function(x){x^2} #this key is not recommended
-varied_dict
-varied_dict$`the last entry` #note the tick marks (sometimes seen) needed due to spaces in key name
-length(varied_dict)
-names(varied_dict)
-```
-
-They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world. Note that data.frame objects are implemented as lists as well as many other common R objects.
-
-
-The second is arrays i.e. are multidimensional vectors
-
-```{r}
-x = array(1 : 5, 5)
-x
-X = array(1 : 25, dim = c(5, 5))
-X
-X = array(1 : 125, dim = c(5, 5, 5))
-X
-X[1, , ]
-X[, 1, ]
-X[, , 1]
-X = array(1 : 125, dim = c(5, 5, 5))
-X
-```
-
-These can be associative arrays too and operate like a hash of vectors across arbitrary dimensions:
-
-```{r}
-X = array(1 : 125, 
-          dim = c(5, 5, 5),
-          dimnames = list(
-            c("A", "B", "C", "D", "E"),
-            c("I", "II", "III", "IV", "V"),
-            c("blue", "red", "green", "yellow", "orange")
-          ))
-X
-X["A", , ]
-X[, "III", ]
-X[, , "orange"]
-X["C", , "orange"]
-X["C", "IV", "orange"]
-```
-
-
-## Saving and Loading in R
-
-Let's save one object:
-
-```{r}
-save(varied_dict, file = "varied_dict.RData") #RData is recommended extension for convenience
-rm(varied_dict)
-varied_dict
-load("varied_dict.RData")
-varied_dict
-```
-
-Or save the whole workspace:
-
-```{r}
-save.image("all_work.RData")
-rm(list = ls())
-ls() #empty vector i.e. nothing here!
-load("all_work.RData")
-ls()
-```
-
-```{r}
-rm(list = ls()) #cleanup everything
-```
 
 ## Libraries in R
 
@@ -383,3 +267,118 @@ for (iter in 1 : MAX_ITER){
 w_vec
 ```
 
+## Computer Science Sidebar
+
+Before we get back to modeling, it is worth knowing a couple more data structures in R. These are not "data [science] types", these are "[computer science] data types". 
+
+The first are "lists" which are "ordered hashmaps" or "ordered dictionaries" or "hash tables". if You don't know what this is, you should read about this online as it should have been covered in a intro to CS class.
+
+```{r}
+dict = list()
+dict$a = "first"
+dict$b = "second"
+dict$c = "third"
+dict
+length(dict)
+names(dict) #keys
+dict_unlisted = unlist(dict) #values
+dict_unlisted
+class(dict_unlisted) #i.e. a vector
+#three ways to access values by key / ordered location
+dict$a
+dict[["a"]]
+dict[[1]] #value of first entered key
+class(dict[[1]])
+dict[[1 : 2]] #bombs
+#now let's try to access a value for a non-existent key / ordered location
+dict$q
+dict[["q"]]
+dict[[4]] #bombs
+#convenient means to subset the list
+dict[1]
+class(dict[1])
+dict[1 : 2]
+dict[1 : 4] #this is the reason this type of access is not recommended
+dict = list("first", "second", "third") #no key => value... what happens?
+dict #default keys are the numbers 1, 2, ...
+dict[[1]]
+```
+
+Lists conveniently allow all sorts of data types.
+
+```{r}
+varied_dict = list()
+varied_dict$a = "first"
+varied_dict$b = 2
+varied_dict$c = 1 : 7
+varied_dict$d = matrix(NA, nrow = 2, ncol = 2)
+varied_dict[["the last entry"]] = function(x){x^2} #this key is not recommended
+varied_dict
+varied_dict$`the last entry` #note the tick marks (sometimes seen) needed due to spaces in key name
+length(varied_dict)
+names(varied_dict)
+```
+
+They have lots of uses in data science applications. We will likely see them in class and if not, you'll definitely see them in the real world. Note that data.frame objects are implemented as lists as well as many other common R objects.
+
+
+The second is arrays i.e. are multidimensional vectors
+
+```{r}
+x = array(1 : 5, 5)
+x
+X = array(1 : 25, dim = c(5, 5))
+X
+X = array(1 : 125, dim = c(5, 5, 5))
+X
+X[1, , ]
+X[, 1, ]
+X[, , 1]
+X = array(1 : 125, dim = c(5, 5, 5))
+X
+```
+
+These can be associative arrays too and operate like a hash of vectors across arbitrary dimensions:
+
+```{r}
+X = array(1 : 125, 
+          dim = c(5, 5, 5),
+          dimnames = list(
+            c("A", "B", "C", "D", "E"),
+            c("I", "II", "III", "IV", "V"),
+            c("blue", "red", "green", "yellow", "orange")
+          ))
+X
+X["A", , ]
+X[, "III", ]
+X[, , "orange"]
+X["C", , "orange"]
+X["C", "IV", "orange"]
+```
+
+
+## Saving and Loading in R
+
+Let's save one object:
+
+```{r}
+save(varied_dict, file = "varied_dict.RData") #RData is recommended extension for convenience
+rm(varied_dict)
+varied_dict
+load("varied_dict.RData")
+varied_dict
+```
+
+Or save the whole workspace:
+
+```{r}
+save.image("all_work.RData")
+rm(list = ls())
+ls() #empty vector i.e. nothing here!
+load("all_work.RData")
+ls()
+```
+
+```{r}
+rm(list = ls()) #cleanup everything
+```

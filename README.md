@@ -42,8 +42,8 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
 * Homework 5 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw05/hw05.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw05/hw05.pdf) (due 11/30)
 * Homework 4 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw04/hw04.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw04/hw04.pdf) (due 11/14 at exam time)
 * Homework 3 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw03/hw03.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw03/hw03.pdf) (due 10/17)
-* Homework 2 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw02/hw02.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw02/hw02.pdf) (due 10/2)
-* Homework 1 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw01/hw01.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw01/hw01.pdf) (due 9/14)-->
+* Homework 2 [(download)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw02/hw02.pdf?raw=true) [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw02/hw02.pdf) (due 10/2)-->
+* Homework 1p [(view)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/homeworks/hw01/hw01p.Rmd) (due 2/24)
 * Homework 0 [(see midway through syllabus)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/syllabus/syllabus.pdf?raw=true) (due 2/1)
 
 ## Exams

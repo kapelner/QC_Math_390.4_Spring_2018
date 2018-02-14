@@ -85,7 +85,7 @@ Test using the following code.
 
 ```{r}
 for (i in 2 : n){
-  expect_gt(sum(R[i - 1, ], na.rm = TRUE), sum(R[i, ], na.rm = TRUE))  
+  expect_gte(sum(R[i - 1, ], na.rm = TRUE), sum(R[i, ], na.rm = TRUE))  
 }
 
 ```

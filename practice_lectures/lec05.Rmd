@@ -1,5 +1,5 @@
 ---
-title: "Lecture 4 MATH 390.4 Queens College"
+title: "Lecture 5 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
 date: "February 14, 2018"
 ---
@@ -40,6 +40,8 @@ dict[1 : 4] #this is the reason this type of access is not recommended
 dict = list("first", "second", "third") #no key => value... what happens?
 dict #default keys are the numbers 1, 2, ...
 dict[[1]]
+dict = list("a" = "first", "b" = "second", "c" = "third") #key => value
+dict
 ```
 
 Lists conveniently allow all sorts of data types.
@@ -50,9 +52,9 @@ varied_dict$a = "first"
 varied_dict$b = 2
 varied_dict$c = 1 : 7
 varied_dict$d = matrix(NA, nrow = 2, ncol = 2)
-varied_dict[["the last entry"]] = function(x){x^2} #this key is not recommended
+varied_dict[["some function"]] = function(x){x^2} #this key is not recommended
 varied_dict
-varied_dict$`the last entry` #note the tick marks (sometimes seen) needed due to spaces in key name
+varied_dict$`some function` #note the tick marks (sometimes seen) needed due to spaces in key name
 length(varied_dict)
 names(varied_dict)
 ```
@@ -72,8 +74,7 @@ X
 X[1, , ]
 X[, 1, ]
 X[, , 1]
-X = array(1 : 125, dim = c(5, 5, 5))
-X
+X[1, 1, 1]
 ```
 
 These can be associative arrays too and operate like a hash of vectors across arbitrary dimensions:
@@ -222,6 +223,7 @@ Okay... back to the "perceptron learning algorithm".
 Let's do so for one dimension - just "V1" in the breast cancer data. You will do an example with more features for homework.
 
 ```{r}
+y_binary = ifelse(y_binary == 1, 0, 1)
 MAX_ITER = 1000
 w_vec = rep(0, 2) #intialize a 2-dim vector
 
@@ -279,7 +281,7 @@ sum(y_binary != yhat) / length(y_binary)
 
 Garbage... because it didn't work. Anyone know why?
 
-Let's try another optimization algorithm called Nelder-Mead developed byJohn Nelder and Roger Mead (both were famous statisticians) in 1965.
+Let's try another optimization algorithm called Nelder-Mead developed by John Nelder and Roger Mead (both were famous statisticians) in 1965.
 
 ```{r}
 pacman::p_load(neldermead)
@@ -289,59 +291,15 @@ optim_output
 w_vec = optim_output$par
 ```
 
-What is our error rate?
+What is our error rate using the Nelder-Mead local optimum?
 
 ```{r}
 yhat = ifelse(X1 %*% w_vec > 0, 1, 0)
 sum(y_binary != yhat) / length(y_binary)
 ```
 
-This beats the perceptron! Lesson: perceptron learning algorithm maybe not so great. Also - different $\mathcal{A}$'s give you wildly different models $g$ even with the same allowable functions provided in $\mathcal{H}$. Most of the really creative work is within $\mathcal{A}$.
+This beats the perceptron! 
 
-## Nearest Neighbor algorithm
+Lesson: perceptron learning algorithm maybe not so great. Also - different $\mathcal{A}$'s give you wildly different models $g$ even with the same allowable functions provided in $\mathcal{H}$. 
 
-In one dimension, we are looking for the closest x.
-
-```{r}
-g_function = function(x_star){
-  best_sqd_distance = Inf #good place to begin
-  i_star = NA
-  for (i in 1 : nrow(X)){
-    dsqd = (X[i, 1] - x_star)^2
-    if (dsqd < best_sqd_distance){
-      best_sqd_distance = dsqd
-      i_star = i
-    }
-  }
-  y_binary[i_star]
-}
-g_function(7.8)
-g_function(5.2)
-```
-
-Why is this silly for this dataset?
-
-```{r}
-str(X)
-```
-The features are not truly continuous. Would it make sense in higher dimensions? Your homework...
-
-Has this been coded before? Definitely...
-
-```{r}
-pacman::p_load(class)
-y_hat = knn(X, c(4, 2, 1, 1, 2, 1, 2, 1), y_binary, k = 1)
-y_hat
-```
-
-Now for an interesting exercise that will setup future classes:
-
-```{r}
-
-y_hat = knn(X, X, y_binary, k = 1)
-all.equal(y_hat, factor(y_binary))
-```
-
-No errors! Can this be a good model? No...
-
-This is the first example of "overfitting". We will explore this in depth.
+Most of the really creative work is within $\mathcal{A}$ although specifying $\mathcal{H}$ suitably flexible is very important too.

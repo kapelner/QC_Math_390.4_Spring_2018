@@ -63,4 +63,4 @@ Location: Kiely Hall 604 (my office)
 
 ## Grades and Class Standing
 
-You can check your grades in realtime at [http://qc.gradesly.com](http://qc.gradesly.com). You type in your CUNYFirst ID# and the password (which was emailed to you at the beginning of the semester).
+You can check your grades in realtime at [http://qc.gradesly.com](http://qc.gradesly.com). You type in your email address and the password (which was emailed to you at the beginning of the semester).

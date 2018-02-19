@@ -4,33 +4,290 @@ author: "Professor Adam Kapelner"
 date: "February 20, 2018"
 ---
 
+## Perceptron Learning Algorithm Again
+
+Here is the "perceptron learning algorithm" coded as a reusable function. Take a look at the comments above the function. This is standard "Roxygen" format for documentation. Hopefully, we will get to packages at some point and we will go over this again.
+
+```{r}
+#' This function runs the "perceptron learning algorithm" of Frank Rosenblatt (1957).
+#'
+#' @param Xinput      The training data features as an n x (p + 1) matrix where the first column is all 1's.
+#' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.
+#' @param MAX_ITER    The maximum number of iterations the perceptron algorithm performs. Defaults to 1000.
+#' @param w           A vector of length p + 1 specifying the parameter (weight) starting point. Default is 
+#'                    \code{NULL} which means the function employs random standard uniform values.
+#'
+#' @return            The computed final parameter (weight) as a vector of length p + 1
+#' @export            [In a package, this documentation parameter signifies this function becomes a public method.]
+#'
+#' @author            Adam Kapelner
+#'
+#' @examples          [In a package, you would write example code here for a future user.]
+perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL){
+  if (is.null(w)){
+    w = runif(ncol(Xinput)) #intialize a p+1-dim vector with random values  
+  }
+  for (iter in 1 : MAX_ITER){  
+    for (i in 1 : nrow(Xinput)){
+      x_i = Xinput[i, ]
+      yhat_i = ifelse(x_i %*% w > 0, 1, 0)
+      w = w + as.numeric(y_binary[i] - yhat_i) * x_i
+    }
+  }
+  w
+}
+```
+
+To understand what the algorithm is doing - linear "discrimination" between two response categories, we can draw a picture. First let's make up some very simple training data $\mathbb{D}$.
+
+```{r}
+Xy_simple = data.frame(
+ response = factor(c(0, 0, 0, 1, 1, 1)), #nominal
+ first_feature = c(1, 1, 2, 3, 3, 4),    #continuous
+ second_feature = c(1, 2, 1, 3, 4, 3)    #continuous
+)
+```
+
+We haven't spoken about visualization yet, but it is important we do some of it now. First we load the visualization library we're going to use:
+
+```{r}
+pacman::p_load(ggplot2)
+```
+
+We are going to just get some plots and not talk about the code to generate them as we will have a whole unit on visualization using `ggplot2` in the future.
+
+Let's first plot $y$ by the two features so the coordinate plane will be the two features and we use different colors to represent the third dimension, $y$.
+
+```{r}
+simple_viz_obj = ggplot(Xy_simple, aes(x = first_feature, y = second_feature, color = response)) + 
+  geom_point(size = 5)
+simple_viz_obj
+```
+
+Now, let us run the algorithm and see what happens:
+
+```{r}
+w_vec_simple_per = perceptron_learning_algorithm(
+  cbind(1, Xy_simple$first_feature, Xy_simple$second_feature),
+  as.numeric(Xy_simple$response == 1))
+w_vec_simple_per
+```
+
+Now remember this is the line defined by $w_0 + w_1 x_2 + w_2 x_2 = 0$ which means $x_2 = -w_0 / w_1 - w_1 / w_2 x_1$ so the intercept is $-w_0 / w_1$ and the slope is $-w_1 / w_2$. Let's draw this line atop the data plot. 
+
+```{r}
+simple_perceptron_line = geom_abline(
+    intercept = -w_vec_simple_per[1] / w_vec_simple_per[3], 
+    slope = -w_vec_simple_per[2] / w_vec_simple_per[3], 
+    color = "orange")
+simple_viz_obj + simple_perceptron_line
+```
+
+Perfect separation (as intended). Now... if we run it again... what happens? It changes! Why?
+
+
+## Support Vector Machines (SVM)
+
+You will code a basic SVM for homework. Here we use the `e1071` library.
+
+```{r}
+pacman::p_load(e1071)
+```
+
+Now we fit a linear SVM. Since it is linearly separable, we can make $\lambda = 0$. Since the package doesn't allow zero, we make it trivially small. 
+
+```{r}
+Xy_simple_feature_matrix = as.matrix(Xy_simple[, 2 : 3])
+lambda = 1e-9
+n = nrow(Xy_simple_feature_matrix)
+svm_model = svm(Xy_simple_feature_matrix, Xy_simple$response, kernel = "linear", cost = (2 * n * lambda)^-1, scale = FALSE)
+```
+
+Now we calculate the weight vector. This is technical and not covered in the class yet (or maybe never):
+
+```{r}
+w_vec_simple_svm = c(
+  svm_model$rho, #the b term
+  -t(svm_model$coefs) %*% Xy_simple_feature_matrix[svm_model$index, ] # the other terms
+)
+w_vec_simple_svm
+```
+
+and plot it:
+
+```{r}
+simple_svm_line = geom_abline(
+    intercept = -w_vec_simple_svm[1] / w_vec_simple_svm[3], 
+    slope = -w_vec_simple_svm[2] / w_vec_simple_svm[3], 
+    color = "purple")
+simple_viz_obj + simple_perceptron_line + simple_svm_line
+```
+
+To understand the hyperparameter, let's introduce another data point so the training data is no longer linearly separable.
+
+```{r}
+Xy_simple = rbind(Xy_simple, c(0, 3.2, 3.2))
+```
+
+and plot it:
+
+```{r}
+simple_viz_obj = ggplot(Xy_simple, aes(x = first_feature, y = second_feature, color = response)) + 
+  geom_point(size = 5)
+simple_viz_obj
+```
+
+Let's see what the perceptron does:
+
+Now, let us run the algorithm and see what happens:
+
+```{r}
+w_vec_simple_per = perceptron_learning_algorithm(
+  cbind(1, Xy_simple$first_feature, Xy_simple$second_feature),
+  as.numeric(Xy_simple$response == 1))
+
+simple_perceptron_line = geom_abline(
+    intercept = -w_vec_simple_per[1] / w_vec_simple_per[3], 
+    slope = -w_vec_simple_per[2] / w_vec_simple_per[3], 
+    color = "orange")
+simple_viz_obj + simple_perceptron_line
+```
+
+Doesn't work!!! 
+
+Note: perceptron algorithm not guaranteed to work unless $\mathbb{D}$ is linearly separable! It sometimes does and sometimes doesn't. (Sorry that I didn't make that clear last time).
+
+Let's try SVM at different $\lambda$ values.
+
+```{r}
+Xy_simple_feature_matrix = as.matrix(Xy_simple[, 2 : 3])
+lambda = 1
+n = nrow(Xy_simple_feature_matrix)
+svm_model = svm(Xy_simple_feature_matrix, Xy_simple$response, kernel = "linear", cost = (2 * n * lambda)^-1, scale = FALSE)
+w_vec_simple_svm = c(
+  svm_model$rho, #the b term
+  -t(svm_model$coefs) %*% Xy_simple_feature_matrix[svm_model$index, ] # the other terms
+)
+
+simple_svm_line = geom_abline(
+    intercept = -w_vec_simple_svm[1] / w_vec_simple_svm[3], 
+    slope = -w_vec_simple_svm[2] / w_vec_simple_svm[3], 
+    color = "purple")
+simple_viz_obj + simple_svm_line
+```
+
+What lesson did we learn here? This hyperparameter really matters! We need to figure out a way to deal with this later. So far neither the perceptron nor the SVM is an algorithm without flaws to find the best linear discrimination line.
+
+
+```{r}
+rm(list = setdiff(ls(), "perceptron_learning_algorithm")) #delete everything but our function - see why having it in a package is better?
+```
+
+
+## Example of the perceptron and SVM on the breast cancer data
+
 First we load up the breast cancer data set.
 
 ```{r}
-Xy = na.omit(MASS::biopsy) #The "breast cancer" data
-?MASS::biopsy
-head(Xy)
-X = Xy[, 2 : 9] #V1, V2, ..., V9
-head(X)
+Xy = na.omit(MASS::biopsy) #The "breast cancer" data with all observations with missing values dropped
+X = Xy[, 2 : 10] #V1, V2, ..., V9
 y_binary = as.numeric(Xy$class == "malignant")
-table(y_binary)
 ```
 
-We should get a baseline when $g = 0$ or $g = 1$ of the error rates on $\mathbb{D}$.
+We should get a baseline of the null model i.e. when $g = 0$ or $g = 1$ of the error rates on $\mathbb{D}$.
 
 ```{r}
-#If always 0, the all 1's are errors
+#If always 0, all the 1's are errors
 239 / (444 + 239)
-#If always 1, the all 0's are errors
+#If always 1, all the 0's are errors
 444 / (444 + 239)
 ```
 
-## Nearest Neighbor algorithm
+Let's try to fit a linear threshold model, the $\mathcal{H}$ we've been discussing ad nauseum on just the features V1 and V2 (and of course an intercept / bias). We use two dimensions so you can see it on plots.
 
-In one dimension, we are looking for the closest x.
+
+Let's first plot $y$ by the two features so the coordinate plane will be the two features and we use different colors to represent the third dimension, $y$. Since the values of the measurements are integers, we "jitter" them just to make sure we get an idea of how many are piled up in each spot.
 
 ```{r}
-g_function = function(x_star){
+breast_cancer_viz_obj = ggplot(Xy, aes(x = jitter(V1), y = jitter(V2), color = class)) + 
+  geom_point() + 
+  labs(x = "clump thickness", y = "uniformity of cell size") + 
+  ggtitle("Breast Cancer Malignancy", subtitle = "by two tumor characteristics")
+breast_cancer_viz_obj
+```
+
+Let's do the "perceptron learning algorithm" again this time on V1 and V2.
+
+```{r}
+X12_and_1 = as.matrix(cbind(1, X[, 1 : 2]))
+w_vec_bc_perceptron = perceptron_learning_algorithm(X12_and_1, y_binary)
+w_vec_bc_perceptron
+```
+
+Why does this take a long time? 
+
+What is the error rate:
+
+```{r}
+yhat = ifelse(X12_and_1 %*% w_vec_bc_perceptron > 0, 1, 0)
+sum(y_binary != yhat) / length(y_binary)
+```
+
+Again, we remember this is the line defined by $w_0 + w_1 x_2 + w_2 x_2 = 0$ which means $x_2 = -w_0 / w_1 - w_1 / w_2 x_1$ so the intercept is $-w_0 / w_1$ and the slope is $-w_1 / w_2$. Let's draw this line atop the data plot. 
+
+```{r}
+bc_perceptron_line = geom_abline(
+    intercept = -w_vec_bc_perceptron[1] / w_vec_bc_perceptron[3], 
+    slope = -w_vec_bc_perceptron[2] / w_vec_bc_perceptron[3], 
+    color = "orange")
+breast_cancer_viz_obj + bc_perceptron_line
+```
+
+Remember - it had no "obligation" to converge to something that made sense since the data is not linearly separable!
+
+Now we fit a linear SVM using the `e1071` package using $\lambda = .01$. 
+
+```{r}
+X12 = as.matrix(X[, 1 : 2]) #no cbinding of a 1 vector
+svm_model = svm(X12, factor(y_binary), kernel = "linear", cost = (2 * nrow(X12) * .01)^-1, scale = FALSE)
+```
+
+Now we calculate the weight vector. This is technical and not covered in the class yet (or maybe never):
+
+```{r}
+w_vec_svm = c(
+  svm_model$rho, #the b term
+  -t(svm_model$coefs) %*% X12[svm_model$index, ] # the other terms
+)
+```
+
+and plot it:
+
+```{r}
+bc_svm_line = geom_abline(
+    intercept = -w_vec_svm[1] / w_vec_svm[3], 
+    slope = -w_vec_svm[2] / w_vec_svm[3], 
+    color = "purple")
+breast_cancer_viz_obj + bc_perceptron_line + bc_svm_line
+```
+
+and the error rate:
+
+```{r}
+X12 = as.matrix(cbind(1, X[, 1 : 2])) #put the 1 back in!
+yhat = ifelse(X12 %*% w_vec_svm > 0, 1, 0)
+sum(y_binary != yhat) / length(y_binary)
+```
+
+It seemed to do a bit better than the perceptron!
+
+
+## Nearest Neighbor algorithm
+
+In one dimension, we are looking for the closest x. Here is a simple function that does it:
+
+```{r}
+nn_function = function(x_star){
   best_sqd_distance = Inf #good place to begin
   i_star = NA
   for (i in 1 : nrow(X)){
@@ -42,8 +299,8 @@ g_function = function(x_star){
   }
   y_binary[i_star]
 }
-g_function(7.8)
-g_function(5.2)
+nn_function(7.8)
+nn_function(5.2)
 ```
 
 Why is this silly for this dataset?
@@ -51,12 +308,14 @@ Why is this silly for this dataset?
 ```{r}
 str(X)
 ```
+
 The features are not truly continuous. Would it make sense in higher dimensions? Your homework...
 
 Has this been coded before? Definitely...
 
 ```{r}
 pacman::p_load(class)
+?knn
 y_hat = knn(X, c(4, 2, 1, 1, 2, 1, 2, 1), y_binary, k = 1)
 y_hat
 ```
@@ -69,6 +328,66 @@ y_hat = knn(X, X, y_binary, k = 1)
 all.equal(y_hat, factor(y_binary))
 ```
 
-No errors! Can this be a good model? No...
+No errors! Can this be a good model? No... "something" must be wrong! It is too good to be true.
 
-This is the first example of "overfitting". We will explore this in depth.
+Something is wrong. This is the first example of "overfitting". We will explore this in depth.
+
+```{r}
+rm(list = ls())
+```
+
+## Simple Linear Regression
+
+To understand what the algorithm is doing - best linear fit by minimizing the squared errors, we can draw a picture. First let's make up some very simple training data $\mathbb{D}$.
+
+```{r}
+n = 20
+x = runif(n)
+beta_0 = 3
+beta_1 = -2
+y = beta_0 + beta_1 * x + rnorm(n, mean = 0, sd = 0.33)
+```
+
+And let's plot the data:
+
+```{r}
+simple_viz_obj = ggplot(data.frame(x = x, y = y), aes(x, y)) + 
+  geom_point(size = 2)
+simple_viz_obj
+```
+
+And its true $h^*$ line:
+
+```{r}
+true_ls_line = geom_abline(intercept = beta_0, slope = beta_1, color = "green")
+simple_viz_obj + true_ls_line
+```
+Now let's calculate the simple least squares coefficients:
+
+```{r}
+r = cor(x, y)
+s_x = sd(x)
+s_y = sd(y)
+ybar = mean(y)
+xbar = mean(x)
+
+b_1 = r * s_y / s_x
+b_0 = ybar - b_1 * xbar
+b_0
+b_1
+```
+
+Note how $b_0$ and $b_1$ are not exactly the same as $\beta_0$ and $\beta_1$.
+
+And we can plot it:
+
+
+```{r}
+simple_ls_regression_line = geom_abline(intercept = b_0, slope = b_1, color = "red")
+simple_viz_obj + simple_ls_regression_line + true_ls_line
+```
+
+Review of the modeling framework:
+
+The difference between the green line and red line is the "estimation error". The difference between the green line and the points is a combination of error due to ignorance and error due to misspecification of $f$ as a straight line. In most real-world applications, estimation error is usually small relative to the other two. In the era of "big data", $n$ is usually big so estimation error is pretty small.
+

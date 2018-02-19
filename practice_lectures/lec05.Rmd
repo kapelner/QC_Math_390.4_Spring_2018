@@ -201,7 +201,7 @@ Time for some new data first... we are bored of the fabricated creditworthiness 
 Xy = na.omit(MASS::biopsy) #The "breast cancer" data
 ?MASS::biopsy
 head(Xy)
-X = Xy[, 2 : 9] #V1, V2, ..., V9
+X = Xy[, 2 : 10] #V1, V2, ..., V9
 head(X)
 y_binary = as.numeric(Xy$class == "malignant")
 table(y_binary)
@@ -210,9 +210,9 @@ table(y_binary)
 First question. Let $\mathcal{H}$ be the set $\{0, 1\}$ meaning $g = 0$ or $g = 1$. What are the error rates then on $\mathbb{D}$? 
 
 ```{r}
-#If always 0, the all 1's are errors
+#If always 0, all the 1's are errors
 239 / (444 + 239)
-#If always 1, the all 0's are errors
+#If always 1, all the 0's are errors
 444 / (444 + 239)
 ```
 

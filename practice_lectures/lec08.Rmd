@@ -273,3 +273,88 @@ ggplot(MASS::Boston, aes(rm, medv)) +
   geom_smooth(method = 'lm')
 ```
 
+```{r}
+rm(list = ls())
+```
+
+
+Let's take a look at another dataset.
+
+```{r}
+?MASS::Cars93
+cars = MASS::Cars93
+(cars)
+dim(cars)
+```
+
+Usually, we are trying to build a model for `Price`. Let's see how `Horsepower` is related to price:
+
+```{r}
+ggplot(cars, aes(Horsepower, Price)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+```
+
+
+```{r}
+simple_linear_model = lm(Price ~ Horsepower, data = cars)
+coef(simple_linear_model)
+summary(simple_linear_model)$r.squared
+summary(simple_linear_model)$sigma
+```
+
+62\% is pretty good $R^2$! But the RMSE is about \$6,000. Using the empirical rule heuristic, that means you can only predict within $\pm \$12,000$ around 95\% of the time. Not so good!
+
+Now let's take a look at the factor variable as the predictor. We'll use `Origin` in this example:
+
+```{r}
+table(cars$Origin)
+```
+
+We can plot how this looks:
+
+```{r}
+ggplot(cars, aes(Origin, Price)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+```
+
+Note that ggplot cannot handle fitting a line with a factor variable.
+
+However...
+
+```{r}
+simple_linear_model = lm(Price ~ Origin, data = cars)
+coef(simple_linear_model)
+summary(simple_linear_model)$r.squared
+summary(simple_linear_model)$sigma
+```
+
+What happened here? The `lm` function can handle factors. It picks a level to be the reference category (in this case, it's origin = USA) and the fitted slope $b_1$ would be the difference between non-USA and USA. Does it make sense that the slope is positive? Yes - foreign cars charge transport fees and there are a lot of luxury foreign cars.
+
+Why is $R^2$ so low?? Remember the null model is one $\bar{y}$, this model is just two $\bar{y}$'s. How much variance can you possible expect to explain with just two possible prediction values?? Now take a look at RMSE. It's about \$10,000. Before, it was about \$6,000 and the $R^2$ = 62\%. Yes the RMSE has gone up in this case. $R^2$ is not proportion standard error explained, it's proportion variance and that squared error is very different than its square root.
+
+Let's cast this predict as numeric and run it again just to make sure it will be the same. We first code a new dummy variable:
+
+```{r}
+cars$origin_is_not_usa = ifelse(cars$Origin == "non-USA", 1, 0)
+```
+
+and then we model using this new dummy variable:
+
+```{r}
+simple_linear_model = lm(Price ~ origin_is_not_usa, data = cars)
+coef(simple_linear_model)
+summary(simple_linear_model)$r.squared
+summary(simple_linear_model)$sigma
+```
+
+and now ggplot can handle the line:
+
+```{r}
+ggplot(cars, aes(origin_is_not_usa, Price)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+```
+
+

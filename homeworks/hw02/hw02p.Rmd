@@ -20,9 +20,7 @@ pacman::p_load(testthat)
 ```
 
 
-## Perceptron and SVMs
-
-Source the simple dataset from lecture 6p:
+1. Source the simple dataset from lecture 6p:
 
 ```{r}
 Xy_simple = data.frame(
@@ -35,7 +33,7 @@ y_binary = as.numeric(Xy_simple$response == 1)
 ```
 
 
-1. Try your best to write a general perceptron learning algorithm to the following `Roxygen` spec. For inspiration, see the one I wrote in lecture 6.
+Try your best to write a general perceptron learning algorithm to the following `Roxygen` spec. For inspiration, see the one I wrote in lecture 6.
 
 ```{r}
 #' This function implements the "perceptron learning algorithm" of Frank Rosenblatt (1957).
@@ -101,6 +99,8 @@ simple_viz_obj + simple_perceptron_line + simple_svm_line
 
 Is this SVM line a better fit than the perceptron?
 
+TO-DO
+
 3. Now write your own implementation of the linear support vector machine algorithm respecting the following spec making use of the nelder mead `optim` function from lecture 5p. It turns out you do not need to load the package `neldermead` to use this function. You can feel free to define a function within this function if you wish. 
 
 Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
@@ -132,6 +132,39 @@ simple_viz_obj + simple_svm_line + my_svm_line
 
 Is this the same as what the `e1071` implementation returned? Why or why not?
 
+4. Write a $k=1$ nearest neighbor algorithm using the Euclidean distance function. Respect the spec below:
+
+```{r}
+#' This function implements the nearest neighbor algorithm.
+#'
+#' @param Xinput      The training data features as an n x p matrix.
+#' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.
+#' @param Xtest       The test data that the algorithm will predict on as a n* x p matrix.
+#' @return            The predictions as a n* length vector.
+nn_algorithm_predict = function(Xinput, y_binary, Xtest){
+  #TO-DO
+}
+```
+
+Write a few tests to ensure it actually works:
+
+```{r}
+#TO-DO
+```
+
+For extra credit, add an argument `k` to the `nn_algorithm_predict` function and update the implementation so it performs KNN. In the case of a tie, choose $\hat{y}$ randomly. Set the default `k` to be the square root of the size of $\mathcal{D}$ which is an empirical rule-of-thumb popularized by the "Pattern Classification" book by Duda, Hart and Stork (2007). Also, alter the documentation in the appropriate places.
+
+```{r}
+#not required TO-DO --- only for extra credit
+```
+
+For extra credit, in addition to the argument `k`, add an argument `d` representing any legal distance function to the `nn_algorithm_predict` function. Update the implementation so it performs KNN using that distance function. Set the default function to be the Euclidean distance in the original function. Also, alter the documentation in the appropriate places.
+
+```{r}
+#not required TO-DO --- only for extra credit
+```
+
+
 4. We move on to simple linear modeling using the ordinary least squares algorithm.
 
 Let's quickly recreate the sample data set from practice lecture 7:
@@ -144,7 +177,7 @@ beta_1 = -2
 y = beta_0 + beta_1 * x + rnorm(n, mean = 0, sd = 0.33)
 ```
 
-Solve for the least squares line by computing $b_0$ and $b_1$ _without_ using the functions `cor`, `cov`, `var`, `sd` but instead computing it from the $x$ and $y$ quantities manually. See the notes for the derivation.
+Solve for the least squares line by computing $b_0$ and $b_1$ _without_ using the functions `cor`, `cov`, `var`, `sd` but instead computing it from the $x$ and $y$ quantities manually. See the class notes.
 
 ```{r}
 #TO-DO
@@ -154,11 +187,12 @@ Verify your computations are correct using the `lm` function in R:
 
 ```{r}
 lm_mod = #TO-DO
-expect_equal(b_0, coef(lm_mod)[1])
-expect_equal(b_1, coef(lm_mod)[2])
+b_vec = coef(lm_mod)
+expect_equal(b_0, b_vec[1], tol = 1e-4)
+expect_equal(b_1, b_vec[2], tol = 1e-4)
 ```
 
-5. We are now going to repeat one of the first linear model building exercises in history - that of Sir Francis Galton in 1886. First load up package `HistData`.
+5. We are now going to repeat one of the first linear model building exercises in history --- that of Sir Francis Galton in 1886. First load up package `HistData`.
 
 ```{r}
 #TO-DO
@@ -176,15 +210,17 @@ You now should have a data frame in your workspace called `Galton`. Summarize th
 #TO-DO
 ```
 
+TO-DO
+
 Find the average height (include both parents and children in this computation).
 
 ```{r}
 avg_height = #TO-DO
 ```
 
-Note that in Math 241 you learned that the sample average is an estimate of the "mean", the population expected value of height. We will call the average the "mean" going forward.
+Note that in Math 241 you learned that the sample average is an estimate of the "mean", the population expected value of height. We will call the average the "mean" going forward since it is probably correct to the nearest tenth of an inch with this amount of data.
 
-Run a linear model attempting to explain the childrens' height using the parents' height. Use `lm` and use the R formula notation. Report $b_0$, $b_1$, RMSE and $R^2$.
+Run a linear model attempting to explain the childrens' height using the parents' height. Use `lm` and use the R formula notation. Compute and report $b_0$, $b_1$, RMSE and $R^2$. Use the correct units to report these quantities.
 
 ```{r}
 #TO-DO
@@ -194,17 +230,17 @@ Interpret all four quantities: $b_0$, $b_1$, RMSE and $R^2$.
 
 TO-DO
 
-How good is this model? How well does it predict?
+How good is this model? How well does it predict? Discuss.
 
 TO-DO
 
-Now use the code from practice lecture 8 to plot the data and a best fit line using package `ggplot2`.
+Now use the code from practice lecture 8 to plot the data and a best fit line using package `ggplot2`. Don't forget to load the library.
 
 ```{r}
 #TO-DO
 ```
 
-It is reasonable to assume that parents and their children have the same height. Explain why.
+It is reasonable to assume that parents and their children have the same height. Explain why this is reasonable using basic biology.
 
 TO-DO
 
@@ -212,7 +248,7 @@ If they were to have the same height and any differences were just random noise 
 
 TO-DO
 
-Let's plot (a) the data, (b) your least squares line defined by $b_0$ and $b_1$ in blue, (c) the theoretical line $\beta_0$ and $\beta_1$ if the parent-child height equality held in red and (d) the mean height in green.
+Let's plot (a) the data in $\mathbb{D}$ as black dots, (b) your least squares line defined by $b_0$ and $b_1$ in blue, (c) the theoretical line $\beta_0$ and $\beta_1$ if the parent-child height equality held in red and (d) the mean height in green.
 
 ```{r}
 ggplot(Galton, aes(x = parent, y = child)) + 
@@ -234,11 +270,11 @@ Why did Galton call it "Regression towards mediocrity in hereditary stature" whi
 
 TO-DO
 
-Why should this be real?
+Why should this effect be real?
 
 TO-DO
 
-Why is modeling with $y$ continuous called "regression"?
+You now have unlocked the mystery. Why is it that when modeling with $y$ continuous, everyone calls it "regression"? Write a better, more descriptive and appropriate name for building predictive models with $y$ continuous.
 
 TO-DO
 

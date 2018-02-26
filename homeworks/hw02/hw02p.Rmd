@@ -165,7 +165,7 @@ For extra credit, in addition to the argument `k`, add an argument `d` represent
 ```
 
 
-4. We move on to simple linear modeling using the ordinary least squares algorithm.
+5. We move on to simple linear modeling using the ordinary least squares algorithm.
 
 Let's quickly recreate the sample data set from practice lecture 7:
 
@@ -192,7 +192,7 @@ expect_equal(b_0, b_vec[1], tol = 1e-4)
 expect_equal(b_1, b_vec[2], tol = 1e-4)
 ```
 
-5. We are now going to repeat one of the first linear model building exercises in history --- that of Sir Francis Galton in 1886. First load up package `HistData`.
+6. We are now going to repeat one of the first linear model building exercises in history --- that of Sir Francis Galton in 1886. First load up package `HistData`.
 
 ```{r}
 #TO-DO

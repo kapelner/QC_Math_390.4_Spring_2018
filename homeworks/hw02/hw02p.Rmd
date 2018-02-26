@@ -77,7 +77,7 @@ TO-DO
 
 
 
-2. Use the `e1071` package to fit an SVM model to `y_binary` using the predictors found in `X_simple_feature_matrix`. Do not specify
+2. Use the `e1071` package to fit an SVM model to `y_binary` using the predictors found in `X_simple_feature_matrix`. Do not specify the $\lambda$ (i.e. do not specify the `cost` argument).
 
 ```{r}
 svm_model = #TO-DO

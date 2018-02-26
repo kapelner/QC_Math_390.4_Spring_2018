@@ -62,11 +62,9 @@ s_sq_e = var(simple_df$residuals)
 rsq = (s_sq_y - s_sq_e) / s_sq_y
 rsq
 
-#calculated different ways
+#calculated in a different, but equivalent way
 sse_0 = (n - 1) * s_sq_y
-(sse_0 - sse) / sse_0 
-mse_0 = sse_0 / n
-(mse_0 - mse) / mse_0 
+(sse_0 - sse) / sse_0
 ```
 
 Let's take a look at $R^2$ visually. We compute null residuals and model residuals and plot a them.
@@ -80,8 +78,8 @@ ggplot(simple_df) +
   theme(legend.position = "none")
 
 ggplot(simple_df) + 
-  stat_density(aes(x = residuals), fill = "darkgreen", alpha = 0.3, adjust = 0.8) + 
-  stat_density(aes(x = null_residuals, fill = "red", alpha = 0.3, adjust = 0.8)) +
+  stat_density(aes(x = residuals), fill = "darkgreen", alpha = 0.3) + 
+  stat_density(aes(x = null_residuals, fill = "red", alpha = 0.3)) +
   theme(legend.position = "none")
 ```
 
@@ -110,7 +108,6 @@ Linear regression is pretty popular so there's obviously support for this in R. 
 ```{r}
 simple_linear_model_formula = as.formula("y ~ x")
 simple_linear_model_formula
-
 ```
 
 You can use a convenience:
@@ -137,7 +134,7 @@ simple_linear_model = lm(simple_linear_model_formula)
 simple_linear_model
 ```
 
-You can skip a step by putting the formula in-line:
+You can skip a step by putting the formula in-line (this is how it's usually done):
 
 
 ```{r}

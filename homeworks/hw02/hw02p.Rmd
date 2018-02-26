@@ -106,7 +106,7 @@ TO-DO
 Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
 
 ```{r}
-#' This function implements the hinge-loss linear support vector machine algorithm of Vladimir Vapnik (1963).
+#' This function implements the hinge-loss + maximum margin linear support vector machine algorithm of Vladimir Vapnik (1963).
 #'
 #' @param Xinput      The training data features as an n x p matrix.
 #' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.

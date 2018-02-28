@@ -192,8 +192,8 @@ Verify your computations are correct using the `lm` function in R:
 ```{r}
 lm_mod = #TO-DO
 b_vec = coef(lm_mod)
-expect_equal(b_0, b_vec[1], tol = 1e-4)
-expect_equal(b_1, b_vec[2], tol = 1e-4)
+expect_equal(b_0, as.numeric(b_vec[1]), tol = 1e-4) #thanks to Rachel for spotting this bug - the b_vec must be casted to numeric
+expect_equal(b_1, as.numeric(b_vec[2]), tol = 1e-4)
 ```
 
 6. We are now going to repeat one of the first linear model building exercises in history --- that of Sir Francis Galton in 1886. First load up package `HistData`.

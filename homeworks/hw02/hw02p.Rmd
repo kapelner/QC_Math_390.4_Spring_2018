@@ -116,9 +116,9 @@ Note there are differences between this spec and the perceptron learning algorit
 #' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.
 #' @param MAX_ITER    The maximum number of iterations the algorithm performs. Defaults to 5000.
 #' @param lambda      A scalar hyperparameter trading off margin of the hyperplane versus average hinge loss.
-#'                    The default value is 1.
+#'                    The default value is 0.1 to mimic hard margin in the linearly separable case.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
-linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 1){
+linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
   #TO-DO
 }
 ```

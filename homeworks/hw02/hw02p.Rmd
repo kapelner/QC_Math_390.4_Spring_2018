@@ -119,7 +119,16 @@ Note there are differences between this spec and the perceptron learning algorit
 #'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 1){
-  #TO-DO
+  p = ncol(Xinput)
+  Xinput = cbind(1, Xinput)
+  w_0 = rep(0, p + 1)
+  optim(w_0, function(w){
+    average_hinge_loss = 1 / nrow(Xinput) * sum(
+      pmax(0, -0.5 - (y_binary - 0.5) * (Xinput %*% w)))
+    scaled_inverse_margin_width = lambda * sum(w[2 : (p + 1)]^2)
+    average_hinge_loss + scaled_inverse_margin_width
+  },
+  control = list(maxit = MAX_ITER))$par
 }
 ```
 

@@ -126,7 +126,7 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
 Run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
 
 ```{r}
-svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary, lambda = 1)
+svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
 my_svm_line = geom_abline(
     intercept = -svm_model_weights[1] / svm_model_weights[3], 
     slope = -svm_model_weights[2] / svm_model_weights[3], 

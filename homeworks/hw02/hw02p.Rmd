@@ -105,9 +105,11 @@ Is this SVM line a better fit than the perceptron?
 
 TO-DO
 
-3. Now write your own implementation of the linear support vector machine algorithm respecting the following spec making use of the nelder mead `optim` function from lecture 5p. It turns out you do not need to load the package `neldermead` to use this function. You can feel free to define a function within this function if you wish. 
+3. Now write pseuocode for your own implementation of the linear support vector machine algorithm respecting the following spec making use of the nelder mead `optim` function from lecture 5p. It turns out you do not need to load the package `neldermead` to use this function. You can feel free to define a function within this function if you wish. 
 
 Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
+
+For extra credit, write the actual code.
 
 ```{r}
 #' This function implements the hinge-loss + maximum margin linear support vector machine algorithm of Vladimir Vapnik (1963).
@@ -123,7 +125,7 @@ linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lamb
 }
 ```
 
-Run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
+If you wrote code (the extra credit), run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
 
 ```{r}
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)

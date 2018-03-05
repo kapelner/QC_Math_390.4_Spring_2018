@@ -105,9 +105,11 @@ Is this SVM line a better fit than the perceptron?
 
 TO-DO
 
-3. Now write your own implementation of the linear support vector machine algorithm respecting the following spec making use of the nelder mead `optim` function from lecture 5p. It turns out you do not need to load the package `neldermead` to use this function. You can feel free to define a function within this function if you wish. 
+3. Now write pseuocode for your own implementation of the linear support vector machine algorithm respecting the following spec making use of the nelder mead `optim` function from lecture 5p. It turns out you do not need to load the package `neldermead` to use this function. You can feel free to define a function within this function if you wish. 
 
 Note there are differences between this spec and the perceptron learning algorithm spec in question \#1. You should figure out a way to respect the `MAX_ITER` argument value. 
+
+For extra credit, write the actual code.
 
 ```{r}
 #' This function implements the hinge-loss + maximum margin linear support vector machine algorithm of Vladimir Vapnik (1963).
@@ -116,22 +118,22 @@ Note there are differences between this spec and the perceptron learning algorit
 #' @param y_binary    The training data responses as a vector of length n consisting of only 0's and 1's.
 #' @param MAX_ITER    The maximum number of iterations the algorithm performs. Defaults to 5000.
 #' @param lambda      A scalar hyperparameter trading off margin of the hyperplane versus average hinge loss.
-#'                    The default value is 0.1 to mimic hard margin in the linearly separable case.
+#'                    The default value is 1.
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
   #TO-DO
 }
 ```
 
-Run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
+If you wrote code (the extra credit), run your function using the defaults and plot it in brown vis-a-vis the previous model's line:
 
 ```{r}
 svm_model_weights = linear_svm_learning_algorithm(X_simple_feature_matrix, y_binary)
 my_svm_line = geom_abline(
-    intercept = -svm_model_weights[1] / svm_model_weights[3], 
+    intercept = svm_model_weights[1] / svm_model_weights[3],#NOTE: negative sign removed from intercept argument here
     slope = -svm_model_weights[2] / svm_model_weights[3], 
     color = "brown")
-simple_viz_obj + simple_svm_line + my_svm_line
+simple_viz_obj  + my_svm_line
 ```
 
 Is this the same as what the `e1071` implementation returned? Why or why not?

@@ -1,0 +1,407 @@
+\documentclass[12pt]{article}
+
+\include{preamble}
+
+\title{Math 390.4 / 650.3 Spring 2018 \\ Midterm Examination One}
+\author{Professor Adam Kapelner}
+
+\date{Monday, March 5, 2018}
+
+\begin{document}
+\maketitle
+
+\noindent Full Name \line(1,0){410}
+
+\thispagestyle{empty}
+
+\section*{Code of Academic Integrity}
+
+\footnotesize
+Since the college is an academic community, its fundamental purpose is the pursuit of knowledge. Essential to the success of this educational mission is a commitment to the principles of academic integrity. Every member of the college community is responsible for upholding the highest standards of honesty at all times. Students, as members of the community, are also responsible for adhering to the principles and spirit of the following Code of Academic Integrity.
+
+Activities that have the effect or intention of interfering with education, pursuit of knowledge, or fair evaluation of a student's performance are prohibited. Examples of such activities include but are not limited to the following definitions:
+
+\paragraph{Cheating} Using or attempting to use unauthorized assistance, material, or study aids in examinations or other academic work or preventing, or attempting to prevent, another from using authorized assistance, material, or study aids. Example: using an unauthorized cheat sheet in a quiz or exam, altering a graded exam and resubmitting it for a better grade, etc.
+\\
+
+\noindent I acknowledge and agree to uphold this Code of Academic Integrity. \\
+
+\begin{center}
+\line(1,0){250} ~~~ \line(1,0){100}\\
+~~~~~~~~~~~~~~~~~~~~~signature~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ date
+\end{center}
+
+\normalsize
+
+\section*{Instructions}
+
+This exam is 110 minutes and closed-book. You are allowed \textbf{one} page (front and back) of a \qu{cheat sheet.} You may use a graphing calculator of your choice. Please read the questions carefully. If the question reads \qu{compute,} this means the solution will be a number otherwise you can leave the answer in \textit{any} widely accepted mathematical notation which could be resolved to an exact or approximate number with the use of a computer. I advise you to skip problems marked \qu{[Extra Credit]} until you have finished the other questions on the exam, then loop back and plug in all the holes. I also advise you to use pencil. The exam is 100 points total plus extra credit. Partial credit will be granted for incomplete answers on most of the questions. \fbox{Box} in your final answers. Good luck!
+
+\pagebreak
+
+\problem This question is about science and modeling.
+
+\benum
+
+\subquestionwithpoints{4} Explain as best as you can why \qu{all models are wrong but some are useful}, a statement made by the famous statisticians George Box and Norman Draper. \spc{5}
+
+\subquestionwithpoints{1} Consider the famous model proposed by Newton in his \textit{Principia Mathematica} in 1687: \qu{Lex II: Mutationem motus proportionalem esse vi motrici impressae, et fieri secundum lineam rectam qua vis illa imprimitur} better known as the \qu{second law of motion} and when translated, is commonly rendered as $a = F/m$. This means that force (denoted $F$) on an object can accelerate (denoted $a$) the object but that the object's mass (denoted $m$) retards this acceleration. Note that all three quantities ($F, a, m$) can be measured. Is this a \emph{mathematical model}? Yes/no.\spc{-0.5}
+
+\subquestionwithpoints{5} Discuss how Newton's second law of motion can be \emph{validated}.\spc{7}
+
+
+\subquestionwithpoints{2} There is an ancient religion who explains the phenomenon of sunsets as follows: a large but invisible dragon eats the sun. According to Karl Popper, is this model \qu{scientific}? Why or why not?\spc{10}
+
+\eenum
+
+\problem This question is mostly about the framework of modeling. Consider the phenomenon $y$ with one predictor $x$. In this case $x \in \mathcal{X} = [-3, 3]$ and $y \in \mathcal{Y} = [4,16]$.  Below is a plot of the data $\mathbb{D}$:
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=2.5in]{curvy}
+\end{figure}
+
+\benum
+\subquestionwithpoints{2} If we are now in the statistical learning framework, what subtype of problem are we most likely solving?
+
+\begin{enumerate}[i)]
+\item regression to predict $y$
+\item binary classification to predict $y$
+\item finding $t$ directly
+\item finding optimal $n$ and $p$ for $\mathbb{D}$
+\item building $\mathcal{A}$ to find $f$ directly
+\item estimating $\mathcal{X}$ and $\mathcal{Y}$ using $\mathcal{H}$
+\end{enumerate}
+
+\subquestionwithpoints{3} Illustrate the null model $g_0$ as a function of $x$ on the plot above.\spc{-0.5}
+
+\subquestionwithpoints{2} If we are now in the statistical learning framework, what will the final output be of the \emph{learning procedure}?
+
+\begin{enumerate}[i)]
+\item $\hat{y}$
+\item $\mathcal{A}$
+\item $g$
+\item $h^*$
+\item $h$
+\item $f$
+\item $z_1, \ldots, z_t$
+\end{enumerate}
+\pagebreak
+
+\noindent We will be fitting many models to this data. Consider fit \#1 below (the line):
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=2.5in]{curvyline}
+\end{figure}
+
+\subquestionwithpoints{2}  What is the approximate $R^2$ of fit \#1?
+
+\begin{enumerate}[i)]
+\item -50\%
+\item 0\%
+\item 5\%
+\item 50\%
+\item 95\%
+\item 100\%
+\end{enumerate}
+
+
+\subquestionwithpoints{2} If, instead of using $x$ to model $y$, we used $\tilde{x} := \indic{x\geq0}$ to model $y$ and use the same $\mathcal{H}$ (and $\mathcal{A}$) as done in fit \#1, the $R^2$ relative to your answer in (d) would
+
+\begin{enumerate}[i)]
+\item decrease
+\item remain the same
+\item increase
+\item not enough information to tell
+\end{enumerate}
+
+
+\subquestionwithpoints{2} In fit \#1, what is most likely the problem?
+
+\begin{enumerate}[i)]
+\item misspecification of $\mathcal{H}$
+\item $g$ is too far from $t$
+\item we are too ignorant of $z_1, \ldots, z_t$ since we only know $x$
+\item the $\mathcal{A}$ is not optimizing its cost function correctly
+\item $f$ could never be approximated with this $\mathbb{D}$.
+\item $h^* \notin \mathcal{H}$
+\end{enumerate}
+\pagebreak
+
+\subquestionwithpoints{1} In fit \#1, is $g \approx h^*$? Yes/no.\spc{0}
+
+\noindent Consider fit \#2 below:
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=2.5in]{curvybadcurve}
+\end{figure}
+
+
+\subquestionwithpoints{2} In fit \#2, what is most likely the problem?
+
+\begin{enumerate}[i)]
+\item misspecification of $\mathcal{H}$
+\item $g$ is too far from $t$
+\item we are too ignorant of $z_1, \ldots, z_t$ since we only know $x$
+\item the $\mathcal{A}$ is not optimizing its cost function correctly
+\item $f$ could never be approximated with this $\mathbb{D}$.
+\item $h^* \notin \mathcal{H}$
+\item non-linear models are illegal and thus this question cannot be answered
+\end{enumerate}
+
+\noindent Consider fit \#3 below:
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=2.5in]{curvygoodcurve}
+\end{figure}
+
+\subquestionwithpoints{2} What is the approximate $R^2$ of fit \#3?
+
+\begin{enumerate}[i)]
+\item -50\%
+\item 0\%
+\item 5\%
+\item 50\%
+\item 95\%
+\item 100\%
+\item $R^2$ is meaningless if $\mathcal{H} \neq \braces{\w \cdot \x : \w \in \reals^{p + 1}}$.
+\end{enumerate}
+
+\subquestionwithpoints{2} What is the approximate RMSE of fit \#3?
+
+\begin{enumerate}[i)]
+\item -4
+\item 0
+\item 0.4
+\item 4
+\item 40
+\item RMSE is always $\bar{y}$
+\item RMSE is meaningless if $\mathcal{H} \neq \braces{\w \cdot \x : \w \in \reals^{p + 1}}$.
+\end{enumerate}
+
+\subquestionwithpoints{3}  In fit \#3, choose the \emph{likely} largest source of error and indicate a strategy to mitigate it in the future.
+
+\begin{enumerate}[i)]
+\item error due to ignorance which can be reduced by \line(1,0){150}
+\item misspecification error which can be reduced by \line(1,0){155}
+\item estimation error which can be reduced by \line(1,0){182}
+\end{enumerate}
+
+\subquestionwithpoints{1}  Regardless of what you think about the fit of the model, consider the following situation. The phenomenon $y$ that we were attempting to predit is \emph{price of a metal per gram in dollars}. And, if the predicted price has to be wrong by more than \$0.25/g for our business to lose money, would this be a \qu{good model}? Yes / no.\spc{-0.5}
+
+\subquestionwithpoints{1}  Regardless of what you think about the fit of the model, consider the following situation. The phenomenon $y$ that we were attempting to predit is \emph{toxicity of a substance}. And, if the predicted toxicity is wrong by even 0.1 then the patient could die, would this be a \qu{good model}? Yes / no.
+
+
+\subquestionwithpoints{1} Could fits \#1, 2 and 3 be fit with the support vector machine algorithm we discussed in class? Yes/no.\spc{3}
+
+\eenum
+
+
+\problem This question is another modeling example. Below is a plot of $\mathbb{D}$:
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=3in]{linsep}
+\end{figure}
+
+\benum
+\subquestionwithpoints{2} If we are now in the supervised statistical learning framework, what subtype of problem are we most likely solving?
+
+\begin{enumerate}[i)]
+\item regression to predict $y$
+\item binary classification to predict $y$
+\item finding $t$ directly
+\item finding optimal $n$ and $p$ for $\mathbb{D}$
+\item building $\mathcal{A}$ to find $f$ directly
+\item estimating $\mathcal{X}$ and $\mathcal{Y}$ using $\mathcal{H}$
+\end{enumerate}
+
+\subquestionwithpoints{2} What is $p$ in this supervised learning problem? What is $n$? Answer both numerically. \spc{0.2}
+
+\subquestionwithpoints{2} What is the null model $g_0$ in this case? \spc{-0.5}
+
+\subquestionwithpoints{3} If you were to use the \emph{perceptron learning algorithm} beginning from random $\w$ locations, draw 3 possible outputs from the algorithm on the plot above. Use dashed lines to illustrate. Also, label the axes. \spc{-0.5}
+
+\subquestionwithpoints{4} For any of the 3 possible outputs from the \emph{perceptron learning algorithm}, provide the function $g$ below explicitly.\spc{0.5}
+
+\subquestionwithpoints{2} If you were to use the \emph{linear support vector machine algorithm} for linearly separable $\mathbb{D}$, draw one possible output from the algorithm on the plot above. Use a solid line to illustrate.\spc{-0.5}
+
+
+\subquestionwithpoints{1} Of the four models you imagined in parts (c) and (e), which one will give the best performance prediction by and large under general conditions?
+\pagebreak
+
+Now consider the same data except with one new data point.
+
+
+\begin{figure}[htp]
+\centering
+\includegraphics[width=5.7in]{nonlinsep}
+\end{figure}
+
+\subquestionwithpoints{3} Consider employing the \emph{linear support vector machine algorithm} for nonlinearly separable $\mathbb{D}$. Let $\lambda = 0$. Draw the most likely output line on the above plot. Use a dashed line to illustrate. Also, label the axes the same as previously. \spc{-0.5}
+
+\subquestionwithpoints{3} Approximate the average hinge loss of the dashed line you drew in the previous question.
+
+\begin{enumerate}[i)]
+\item $<0$
+\item 0
+\item 0.02
+\item 0.2
+\item 2
+\item $>$2
+\end{enumerate}
+
+\subquestionwithpoints{3} Consider employing the \emph{linear support vector machine algorithm} for nonlinearly separable $\mathbb{D}$. And let $\lambda > 0$ so that the term that $\lambda$ effects becomes important in the optimization but does not drown out the hinge loss. Draw the most likely output line on the above plot. Use a solid line to illustrate.\spc{-0.5}
+
+\subquestionwithpoints{1} How would the solution you proposed in (i) be fit on a computer?
+
+\begin{enumerate}[I)]
+\item There is an analytic solution that is pre-programmed
+\item The computer uses numerical optimization which is heuristic
+\end{enumerate}
+
+\subquestionwithpoints{2} Consider $\x^* = \bracks{5.4~4.2}$. What is $\hat{y}^*$ if you employ the KNN algorithm where $k=1$? \spc{0}
+
+\subquestionwithpoints{3} Consider $\x^* = \bracks{5.4~4.2}$. What is $\hat{y}^*$ if you employ the KNN algorithm where $k=3$? \spc{0}
+
+\subquestionwithpoints{3} Consider $\x^* = \bracks{5.4~4.2}$. What is $\hat{y}^*$ if you employ the KNN algorithm where $k=10$? \spc{0}
+\eenum
+
+\problem Consider a subset of the Boston Housing Data that has been preprocessed. Below is some \texttt{R} code that gives background on the \texttt{boston} data frame which will be referenced throughout this problem. Note that this problem contains some coding exercises. 
+
+\begin{lstlisting}
+> dim(boston)
+[1] 506   4
+> head(boston)
+          chas rad  room medv
+1 NOT_ON_RIVER   1 6.575 24.0
+2 NOT_ON_RIVER   2 6.421 21.6
+3 NOT_ON_RIVER   2 7.185 34.7
+4 NOT_ON_RIVER   3 6.998 33.4
+5 NOT_ON_RIVER   3 7.147 36.2
+6 NOT_ON_RIVER   3 6.430 28.7
+> summary(boston)
+           chas          rad            room           medv      
+ NOT_ON_RIVER:471   24     :132   Min.   :3.561   Min.   : 5.00  
+ ON_RIVER    : 35   5      :115   1st Qu.:5.886   1st Qu.:17.02  
+                    4      :110   Median :6.208   Median :21.20  
+                    3      : 38   Mean   :6.285   Mean   :22.53  
+                    6      : 26   3rd Qu.:6.623   3rd Qu.:25.00  
+                    2      : 24   Max.   :8.780   Max.   :50.00  
+                    (Other): 61 
+\end{lstlisting}
+
+\benum
+
+\subquestionwithpoints{2} Using the terminology used in class, what type of predictor is \texttt{rad}? \spc{1}
+
+\subquestionwithpoints{2} Using the terminology used in class, what type of predictor is \texttt{room}? \spc{1}
+
+
+\subquestionwithpoints{2} Write one line of \texttt{R} code below that pulls out the 7th observation as a vector. \spc{1}
+
+\subquestionwithpoints{2} Write one line of \texttt{R} code below that pulls out the first 30 observations. \spc{0.5}
+
+\subquestionwithpoints{3} Write one line of \texttt{R} code below that pulls out all observations where: \texttt{chas} is \qu{\texttt{ON\_RIVER}} or \texttt{medv} is less than 20. \spc{0.5}
+
+\subquestionwithpoints{3} Write one line of \texttt{R} code below that creates a new data frame \texttt{boston\_random} containing the same observations as \texttt{boston} but where the order of the observations is random. \spc{0.5}
+
+\subquestionwithpoints{2} Write one line of \texttt{R} code below that finds the 25\%ile of the variable \texttt{medv}. \spc{0.5}
+
+\subquestionwithpoints{2} What would the following code produce?
+
+\begin{lstlisting}
+as.matrix(boston[1 : 2, 3 : 4])
+\end{lstlisting}
+~\spc{3}
+
+\subquestionwithpoints{1} What would the following code produce?
+
+\begin{lstlisting}
+class(as.matrix(boston[, 3: 4])[1, ])
+\end{lstlisting}
+~\spc{-0.7}
+
+
+\subquestionwithpoints{1} What would the following code produce?
+
+\begin{lstlisting}
+class(as.matrix(boston[, 3: 4])[1, , drop = FALSE])
+\end{lstlisting}
+~\spc{1}
+
+\eenum
+
+\problem This last problem contains pure coding exercises. 
+
+\benum
+
+\subquestionwithpoints{5} Complete the function below to spec. You don't have to use all the free lines given (in fact, it can be done in one line). You are free to use the \texttt{mean}, \texttt{sd}, \texttt{cov}, \texttt{cor} and other base \texttt{R} functions (but you cannot use \texttt{lm}). \spc{-0.5}
+
+\begin{lstlisting}
+#' This function implements the linear least squares regression algorithm
+#' popularized by Sir Francis Galton in 1886.
+#'
+#' @param x		the continuous predictor
+#' @param y		the continuous response 	
+#' @return 		a list containing a key ``b_0'' whose value is the inter-
+#'						cept and a key ``b_1'' whose value is the slope
+linear_least_squares_algorithm = function(x, y){
+
+
+
+
+
+
+
+
+
+
+
+
+}
+\end{lstlisting}
+
+\vspace{0.2cm}
+\subquestionwithpoints{2} What does the following code produce? 
+
+\begin{lstlisting}
+xs = rep(NA, 5)
+xs[3] = -8
+xs[5] = 7
+tot = 0
+for (x in xs){
+  if (is.na(x)){
+    next
+  }
+  tot = tot + x
+}
+tot
+\end{lstlisting}
+
+
+\subquestionwithpoints{1} What does the following code produce? 
+
+\begin{lstlisting}
+my_function = function(x, y = 2, z = 3, p = 4, q = 6, r = 0){
+  (x + y + z) / (p + q + r)
+}
+my_function(1)
+\end{lstlisting}
+
+\eenum
+\pagebreak
+
+
+\problem Some final theory for extra credit. 
+
+\benum
+
+\subquestionwithpoints{5} [Extra credit] Consider the non-linearly separable SVM algorithm we studied in class. Now, describe an alternative $\mathcal{A}$ which instead of returning a function whose range is only $\braces{0,1}$, returns a function that can estimate $\cprob{Y = 1}{\X = \x}$.  Describe it in English and use diagrams if necessary.\spc{30}
+
+\eenum
+
+\end{document}

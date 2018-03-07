@@ -1,0 +1,205 @@
+---
+title: "Lecture 11 MATH 390.4 Queens College"
+author: "Professor Adam Kapelner"
+date: "March 12, 2018"
+---
+
+Let's load up the Boston Housing data again.
+
+```{r}
+boston = MASS::Boston
+```
+
+## Multivariate linear regression
+
+We want to run a multivariate linear regression $\mathcal{H}$ employing the least squares $\mathcal{A}$ manually using our derived linear algebra. Let us first pull out $\mathbb{D}$ as $y$ and $X$.
+
+Let's ensure we augment the `X` to include the 1 vector in front. We need this for the intercept in the $w$ vector in our spec, $\mathcal{H}$.
+
+```{r}
+y = boston$medv
+X = cbind(1, boston[, 1: 12])
+```
+
+Can we find $X^\top X$?
+
+```{r}
+XtX = t(X) %*% X
+```
+
+The data frame is great, but unfortunately R does not allow us to use matrix algebra on it.
+
+So let's create a matrix. Note: there are no factor variables with more than one level. `chas` is a binary variable and that's okay. If there were factors with more than level, the following will not work. We will explore this later.
+
+```{r}
+X = as.matrix(cbind(1, boston[, 1: 12]))
+```
+
+So $p = 12$ and $p + 1 = 13$.
+
+Let's make each predictor name nice just for aesthetic value:
+
+```{r}
+colnames(X)
+colnames(X)[1] = "(intercept)" #this is the standard way lm denotes it (which we will compare to later)
+colnames(X)
+```
+
+
+Can we find $X^\top X$?
+
+```{r}
+XtX = t(X) %*% X
+```
+
+Is it full rank?
+
+```{r}
+XtXinv = solve(XtX)
+```
+
+It worked. This means $X$ is full rank i.e. there is no linear duplication of information over the 12+1 predictors. In case we're in doubt:
+
+```{r}
+pacman::p_load(Matrix)
+rankMatrix(X)[[1]]
+rankMatrix(t(X))[[1]]
+rankMatrix(XtX)[[1]]
+rankMatrix(XtXinv)[[1]]
+```
+
+
+Let's calculate the LS solution then:
+
+```{r}
+b = XtXinv %*% t(X) %*% y
+b
+```
+
+Interpretation: if `crim` "increases" by 1, $\hat{y}$ increases by... etc etc. How would `crim` increase? Big philosophical topic which we are punting on (for now). If all predictors are 0, then $y$ would be predicted to be the intercept, 20.65. Strange concept... not usually important.
+
+What would $g$ look like?
+
+```{r}
+g_predict_function = function(x_star){
+   x_star %*% b
+}
+```
+
+Pretty simple...  and `x_star` could be a matrix of `n_star * (p + 1)` - where `n_star` is however many new observations you wish to predict.
+
+We can compute all predictions:
+
+```{r}
+yhat = X %*% b
+head(y)
+head(yhat) #close
+```
+
+Can you tell this is projected onto a 13 dimensionsal space from a 506 dimensional space? Not really... but it is...
+
+We can calculate the residuals:
+
+```{r}
+e = y - yhat
+head(e)
+```
+
+
+
+What is RMSE?
+
+```{r}
+SSE = t(e) %*% e
+MSE = 1 / (ncol(X)) * SSE
+RMSE = sqrt(MSE)
+SSE
+MSE
+RMSE
+```
+
+Interpret the RMSE...
+
+We can calculate $R^2$ two ways:
+
+```{r}
+s_sq_y = var(y)
+s_sq_e = var(e)
+Rsq = (s_sq_y - s_sq_e) / s_sq_y
+Rsq
+
+n = length(e)
+SST = (n - 1) * s_sq_y
+Rsq = 1 - SSE / SST
+Rsq
+```
+
+Let's look at distribution of $y$ and $e$ to get an idea about $R^2$ as we did before:
+
+
+```{r}
+pacman::p_load(ggplot2)
+
+ggplot(data.frame(null_residuals = y - mean(y), residuals = e)) + 
+  stat_density(aes(x = residuals), fill = "darkgreen", alpha = 0.3) + 
+  stat_density(aes(x = null_residuals, fill = "red", alpha = 0.3)) +
+  theme(legend.position = "none")
+```
+
+What does this tell you about $R^2$?
+
+Let's make a predict function and see what happens
+
+Before we talk about the hat matrix, $H$, let's do a simple example of projection. Let's project $y$ onto the intercept column, the column of all 1's. What do you think will happen?
+
+```{r}
+ones = X[, 1, drop = FALSE] #need to keep this as a matrix!
+H = ones %*% t(ones) / sum(ones^2)
+H[1 : 5, 1 : 5]
+#in fact
+unique(c(H))
+```
+
+The whole matrix is just one single value for each element! What is this value? It's 1 / 506 where 506 is $n$. So what's going to happen?
+
+```{r}
+y_proj_ones = H %*% y
+head(y_proj_ones)
+mean(y)
+```
+
+Projection onto the space of all ones makes the null model ($g = \bar{y}$). It's the same as the model of response = intercept. The best intercept is $\bar{y}$.
+
+Let's go back to all variables and get $\hat{y}$ from the hat matrix:
+
+```{r}
+head(yhat)
+H = X %*% XtXinv %*% t(X)
+yhat_with_H = H %*% y
+head(yhat_with_H)
+```
+
+Same thing since algebraically it's the same. Now let's project over and over...
+
+```{r}
+head(H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% y)
+```
+
+Once you project, you're there. That's the idempotency of $H$.
+
+Let's recreate the residuals too.
+
+```{r}
+head(e)
+I = diag(nrow(X))
+e_with_H = (I - H) %*% y
+head(e_with_H)
+```
+
+Same thing! Let's do that projection over and over onto the complement of the column space of $X$:
+
+```{r}
+head((I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% y)
+```
+
+Same thing for the same reason.

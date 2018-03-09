@@ -4,11 +4,43 @@ author: "Professor Adam Kapelner"
 date: "March 12, 2018"
 ---
 
-Let's load up the Boston Housing data again.
+Let's load up the Boston Housing data and ggplot.
 
 ```{r}
 boston = MASS::Boston
+pacman::p_load(ggplot2)
 ```
+
+##Extrapolation
+
+Let's take a look at a model that explains median home value using the average number of rooms. We plot $g$ in blue.
+
+```{r}
+mod = lm(medv ~ rm, boston)
+b = summary(mod)$coef
+ggplot(boston, aes(rm, medv)) + 
+  geom_point() + 
+  geom_abline(intercept = b[1], slope = b[2], col = "blue", lwd = 2)
+```
+
+Let's plot this a little bit differently:
+
+```{r}
+pacman::p_load(ggplot2)
+ggplot(boston, aes(rm, medv)) + 
+  geom_point() + 
+  geom_abline(intercept = b[1], slope = b[2], col = "blue", lwd = 2) +
+  xlim(0, 13) + ylim(-10, 90)
+```
+
+What changed in this plot? Nothing but the limits of the x and y axes. And we can see more clearly that "lines are forever"... just like diamonds... except that the line is not so precious with `rm` less than 4 and `rm` greater than 9. What are the problems with this?
+
+What did we learn here? This model really shouldn't be used outside of the range of $\mathbb{D}$.
+
+Is the linear model of median home value using rooms *actually* linear? Not a chance! You cannot have rooms be negative or more than e.g. 50. And you can't have median values that are negative.
+
+Linear models are usually only linear in a sensical range of the predictors.
+
 
 ## Multivariate linear regression
 
@@ -187,7 +219,22 @@ head(H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% y)
 
 Once you project, you're there. That's the idempotency of $H$.
 
-Let's recreate the residuals too.
+Let's make sure that it really does represent the column space of $X$. Let's try to project different columns of $X$:
+
+```{r}
+head(X[, 1, drop = FALSE])
+head(H %*% X[, 1, drop = FALSE])
+
+head(X[, 2, drop = FALSE])
+head(H %*% X[, 2, drop = FALSE])
+
+head(X[, 3, drop = FALSE])
+head(H %*% X[, 3, drop = FALSE]) #why?? Numerical error...
+
+#etc....
+```
+
+Now let's recreate the residuals too.
 
 ```{r}
 head(e)
@@ -203,3 +250,43 @@ head((I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% y)
 ```
 
 Same thing for the same reason.
+
+And are the residuals summed / averages to be zero?
+
+```{r}
+sum(e)  #numerically 0
+mean(e) #numerically 0
+```
+
+
+Let's demonstrate the sum of squares identity. We already have SST and SSE computed.
+
+```{r}
+ybar = mean(y)
+SSR = sum((yhat - ybar)^2)
+SSR + SSE
+SST
+```
+
+And the uncentered vector projection:
+
+```{r}
+sum(y^2)
+sum(yhat^2) + sum(e^2)
+```
+
+Now let's do the QR decomposition and see if the projections work.
+
+```{r}
+qrX = qr(X)
+Q = qr.Q(qrX)
+R = qr.R(qrX)
+
+sum(Q[, 1]^2)  #normalized?
+sum(Q[, 2]^2) #normalized?
+Q[, 1] %*% Q[, 2]^2 #orthogonal? Numerical error piles up...
+Q[, 2] %*% Q[, 3]^2 #orthogonal? Numerical error piles up...
+
+yhat_via_Q = Q %*% t(Q) %*% y
+sum(abs(yhat - yhat_via_Q)) #they are numerically the same
+```

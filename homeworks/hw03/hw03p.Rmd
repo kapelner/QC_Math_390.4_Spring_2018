@@ -1,0 +1,12 @@
+---
+title: "HW03p"
+author: "[Your Name Goes Here]"
+date: "March 19, 2018"
+output: pdf_document
+---
+
+```{r setup, cache = F}
+knitr::opts_chunk$set(error = TRUE) #this allows errors to be printed into the PDF
+```
+
+

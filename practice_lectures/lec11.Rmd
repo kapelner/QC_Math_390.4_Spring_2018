@@ -35,11 +35,9 @@ ggplot(boston, aes(rm, medv)) +
 
 What changed in this plot? Nothing but the limits of the x and y axes. And we can see more clearly that "lines are forever"... just like diamonds... except that the line is not so precious with `rm` less than 4 and `rm` greater than 9. What are the problems with this?
 
-What did we learn here? This model really shouldn't be used outside of the range of $\mathbb{D}$.
+What did we learn here? This model really shouldn't be used outside of the range of $\mathbb{D}$. In this range, predictions are called "interpolations" amd pitseode pf the range they are called "extrapolations". The former is solid and latter is not. Why is this?
 
-Is the linear model of median home value using rooms *actually* linear? Not a chance! You cannot have rooms be negative or more than e.g. 50. And you can't have median values that are negative.
-
-Linear models are usually only linear in a sensical range of the predictors.
+Is the linear model of median home value using rooms *actually* linear? Not a chance! You cannot have rooms be negative or more than e.g. 50. And you can't have median values that are negative. Linear models are usually only approximately linear in a sensical range of the predictors.
 
 
 ## Multivariate linear regression
@@ -50,13 +48,13 @@ Let's ensure we augment the `X` to include the 1 vector in front. We need this f
 
 ```{r}
 y = boston$medv
-X = cbind(1, boston[, 1: 12])
+X = cbind(1, boston[, 1: 13])
 ```
 
 Can we find $X^\top X$?
 
 ```{r}
-XtX = t(X) %*% X
+# XtX = t(X) %*% X
 ```
 
 The data frame is great, but unfortunately R does not allow us to use matrix algebra on it.
@@ -64,10 +62,10 @@ The data frame is great, but unfortunately R does not allow us to use matrix alg
 So let's create a matrix. Note: there are no factor variables with more than one level. `chas` is a binary variable and that's okay. If there were factors with more than level, the following will not work. We will explore this later.
 
 ```{r}
-X = as.matrix(cbind(1, boston[, 1: 12]))
+X = as.matrix(cbind(1, boston[, 1: 13]))
 ```
 
-So $p = 12$ and $p + 1 = 13$.
+So $p = 12$ and $p + 1 = 14$.
 
 Let's make each predictor name nice just for aesthetic value:
 
@@ -90,7 +88,7 @@ Is it full rank?
 XtXinv = solve(XtX)
 ```
 
-It worked. This means $X$ is full rank i.e. there is no linear duplication of information over the 12+1 predictors. In case we're in doubt:
+It worked. This means $X$ is full rank i.e. there is no linear duplication of information over the `13 + 1` predictors. In case we're in doubt:
 
 ```{r}
 pacman::p_load(Matrix)
@@ -116,6 +114,8 @@ What would $g$ look like?
 g_predict_function = function(x_star){
    x_star %*% b
 }
+g_predict_function(X[7, ])
+y[7] #good prediction!
 ```
 
 Pretty simple...  and `x_star` could be a matrix of `n_star * (p + 1)` - where `n_star` is however many new observations you wish to predict.
@@ -124,8 +124,6 @@ We can compute all predictions:
 
 ```{r}
 yhat = X %*% b
-head(y)
-head(yhat) #close
 ```
 
 Can you tell this is projected onto a 13 dimensionsal space from a 506 dimensional space? Not really... but it is...
@@ -136,8 +134,6 @@ We can calculate the residuals:
 e = y - yhat
 head(e)
 ```
-
-
 
 What is RMSE?
 
@@ -180,7 +176,220 @@ ggplot(data.frame(null_residuals = y - mean(y), residuals = e)) +
 
 What does this tell you about $R^2$?
 
-Let's make a predict function and see what happens
+Now, of course, R has its own function to do all this. We've already seen them! To run a multivariate least squares linear model,
+
+```{r}
+mult_lin_mod = lm(medv ~ ., boston)
+```
+
+No need to (a) create a matrix from the data frame (b) append a 1's column (c) do the linear algebra. It's all done for you. What is this formula `medv ~ .`? Previously we've seen `medv ~ rm` to indicate "fit phenomenon `medv` using predictor `rm`". Here, it's "fit phenomenon `medv` using all available predictors in the data frame". This is a very powerful formula!
+
+Let's extract the estimates $b$ as well as $R^2$ and RMSE:
+
+```{r}
+coef(mult_lin_mod)
+summary(mult_lin_mod)$r.squared
+summary(mult_lin_mod)$sigma
+```
+
+Does R offer a simple way to do $g$? Sure...
+
+```{r}
+x_star = boston[7, ]
+y_hat_star = predict(mult_lin_mod, newdata = x_star)
+y_hat_star
+y[7]
+```
+
+If you care about the internals of what R is doing, it retraces our steps perfectly. It first creates the "model matrix" we called the "design matrix" and denoted it X:
+
+```{r}
+Xmm = model.matrix(medv ~ ., boston)
+head(Xmm)
+head(X) #same
+```
+
+Then it uses an internal function to compute the linear algebra:
+
+```{r}
+raw_mod = lm.fit(Xmm, y)
+raw_mod$coefficients
+```
+
+We will soon see the internals of the `lm.fit` algorithm when we get to orthogonal projections in class (coming up next).
+
+```{r}
+rm(list = ls())
+```
+
+
+## LS using categorical predictors
+
+Note that historically this is called "Analysis of Variance" or "ANOVA" for short. But there is no difference to the computer, it still crunches the same matrices.
+
+Let's get the cars data again:
+
+```{r}
+cars = MASS::Cars93
+str(cars)
+```
+
+Let's try to model `Type`, a factor with 6 levels.
+
+```{r}
+table(cars$Type)
+```
+
+What will $\hay{y}$ look like? Should be the $\bar{y}$'s for each level. What is $p$? 6. Let' see:
+
+```{r}
+anova_mod = lm(Price ~ Type, cars)
+coef(anova_mod)
+summary(anova_mod)$r.squared
+```
+
+What's going on here? This one categorical variable got blown up into 5 features! How to interpret?? First need reference category. Which one is missing? `Compact`. So what is prediction for the compact type? The intercept. What is prediction of Large type? Intercept + Large, etc. How does this regression look. Let's see the model matrix:
+
+```{r}
+Xmm = model.matrix(Price ~ Type, cars)
+head(Xmm, 20)
+```
+
+The predictor `Type` got "dummified". (Remember we spoke about this in lecture 2)? There are now 5 dummy variables each representing one of the levels and the reference level is omitted because it is accounted for in the intercept. Let's make sure this is exactly what's going on.
+
+```{r}
+y = cars$Price
+Xt = t(Xmm) 
+XtX = Xt %*% Xmm
+XtXinv = solve(XtX)
+b = XtXinv %*% Xt %*% y
+b
+yhat = Xmm %*% b
+e = y - yhat
+Rsq = (var(y) - var(e)) / var(y)
+Rsq
+```
+
+And of course the coefficients and $R^2$ are identical to the output from `lm`.
+
+If we want to do a more "pure ANOVA", we can get rid of the intercept and see the $\bar{y}$'s immediately. This is handled in R's formula designation by adding a zero:
+
+```{r}
+anova_mod = lm(Price ~ 0 + Type, cars)
+coef(anova_mod)
+```
+
+Is this correct?
+
+```{r}
+mean(cars$Price[cars$Type == "Compact"])
+mean(cars$Price[cars$Type == "Large"])
+mean(cars$Price[cars$Type == "Midsize"])
+mean(cars$Price[cars$Type == "Small"])
+mean(cars$Price[cars$Type == "Sporty"])
+mean(cars$Price[cars$Type == "Van"])
+```
+
+What does $R^2$ look like?
+
+```{r}
+summary(anova_mod)$r.squared
+```
+
+Too high!! What happened? The $R^2$ calculation in `lm` is not accurate without the intercept. Keep this in mind. 
+
+What does the design matrx (model matrix) look like?
+
+```{r}
+Xmm = model.matrix(Price ~ 0 + Type, cars)
+head(Xmm, 20)
+```
+
+Very similar. 
+
+Regressions without an intercept are not recommended. Here's why. What if we were doing two factors? I want a linear model with both Type and Airbags:
+
+```{r}
+table(cars$AirBags)
+```
+
+Airags is another nominal categorical variable, this time with three levels.
+
+We invoke the model as follows.
+
+```{r}
+anova_mod = lm(Price ~ Type + AirBags, cars)
+coef(anova_mod)
+summary(anova_mod)$r.squared
+```
+
+What are interpretations now? What is the "reference level"? It's actually two levels in one: Type = compact and Airbags = Driver \& Passenger. 
+
+A deeper question: can we read off Type = Midsize and AirBags = none? No... this is a modeling "enhancement" we will discuss in a few lectures from now.
+
+If we model it without an intercept,
+
+
+```{r}
+anova_mod = lm(Price ~ 0 + Type + AirBags, cars)
+coef(anova_mod)
+```
+
+we only get $\bar{y}$'s for the first factor predictor crossed with the reference category of the second. So above `TypeCompact` refers to the average of Type = Compact and Airbags = Driver \& Passenger.
+
+Now let's create a linear model using one categorical predictor and one continuous predictor. The combination is called for historical reasons "Analysis of Covariance" or "ANCOVA" for short.
+
+Let's use `Tyoe` and `Horsepower`:
+
+```{r}
+ancova_mod = lm(Price ~ Type + Horsepower, cars)
+coef(ancova_mod)
+summary(ancova_mod)$r.squared
+```
+
+Interpretation of estimated coefficients? Why did $R^2$ increase? (We will be explaining this in detail in the next unit).
+
+What's going on the design / model matrix?
+
+```{r}
+head(model.matrix(Price ~ Type + Horsepower, cars))
+```
+
+Same as model matrix with just `Type`. Since `Horsepower` is continuous, it doesn't get dummified to more features.
+
+What if we went back to the `Type` regression, left out the intercept, dummified and added the intercept back in?
+
+```{r}
+Xmm = model.matrix(Price ~ 0 + Type, cars)
+Xmm = cbind(1, Xmm)
+head(Xmm)
+```
+
+Are the columns linearly independent? No ... so when we try to get the hat matrix,
+
+```{r}
+Xmm %*% solve(t(Xmm) %*% Xmm) %*% t(Xmm)
+```
+
+You can't invert a non-invertible matrix!!
+
+What does R do when using the linear model function:
+
+```{r}
+coef(lm(cars$Price ~ 0 + Xmm))
+```
+
+SOMEHOW: it doesn't complain since it handles the non-invertibility (we don't know why...) but we do see that it's busted. Look at the coefficients! One is missing! What is it doing?? It's just arbitrarily dropping one (just like recommended at the end of lecture 10).
+
+## Least Squares as Projections
+
+# The null model
+
+Let's go back to the Boston data and regenerate all our quantities:
+
+```{r}
+y = MASS::Boston$medv
+```
 
 Before we talk about the hat matrix, $H$, let's do a simple example of projection. Let's project $y$ onto the intercept column, the column of all 1's. What do you think will happen?
 
@@ -202,22 +411,26 @@ mean(y)
 
 Projection onto the space of all ones makes the null model ($g = \bar{y}$). It's the same as the model of response = intercept. The best intercept is $\bar{y}$.
 
-Let's go back to all variables and get $\hat{y}$ from the hat matrix:
+# The Hat matrix
+
+Let's go back to running the model on all variables and get $\hat{y}$ from the hat matrix:
 
 ```{r}
-head(yhat)
+X = as.matrix(cbind(1, MASS::Boston[, 1: 13]))
+XtX = t(X) %*% X
+XtXinv = solve(XtX)
 H = X %*% XtXinv %*% t(X)
-yhat_with_H = H %*% y
-head(yhat_with_H)
+yhat = H %*% y
+head(yhat)
 ```
 
-Same thing since algebraically it's the same. Now let's project over and over...
+Now let's project over and over...
 
 ```{r}
 head(H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% H %*% y)
 ```
 
-Once you project, you're there. That's the idempotency of $H$.
+Sam thing! Once you project, you're there. That's the idempotency of $H$.
 
 Let's make sure that it really does represent the column space of $X$. Let's try to project different columns of $X$:
 
@@ -237,6 +450,7 @@ head(H %*% X[, 3, drop = FALSE]) #why?? Numerical error...
 Now let's recreate the residuals too.
 
 ```{r}
+e = y - yhat
 head(e)
 I = diag(nrow(X))
 e_with_H = (I - H) %*% y
@@ -251,19 +465,13 @@ head((I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% y)
 
 Same thing for the same reason.
 
-And are the residuals summed / averages to be zero?
-
-```{r}
-sum(e)  #numerically 0
-mean(e) #numerically 0
-```
-
-
 Let's demonstrate the sum of squares identity. We already have SST and SSE computed.
 
 ```{r}
 ybar = mean(y)
+SST = sum((y - ybar)^2)
 SSR = sum((yhat - ybar)^2)
+SSE = sum(e^2)
 SSR + SSE
 SST
 ```
@@ -284,9 +492,145 @@ R = qr.R(qrX)
 
 sum(Q[, 1]^2)  #normalized?
 sum(Q[, 2]^2) #normalized?
-Q[, 1] %*% Q[, 2]^2 #orthogonal? Numerical error piles up...
-Q[, 2] %*% Q[, 3]^2 #orthogonal? Numerical error piles up...
+Q[, 1] %*% Q[, 2] #orthogonal?
+Q[, 2] %*% Q[, 3] #orthogonal?
 
 yhat_via_Q = Q %*% t(Q) %*% y
-sum(abs(yhat - yhat_via_Q)) #they are numerically the same
+head(yhat)
+head(yhat_via_Q)
 ```
+
+
+```{r}
+rm(list = ls())
+```
+
+# Correlation zero means orthogonality
+
+Let's generate some fake data. In this example we'll have one predictor which will be orthogonal to the centered response. We enforce the response to be centered by adding a column of 1's:
+
+```{r}
+n = 100; p = 2
+Q = qr.Q(qr(cbind(1, matrix(rnorm(n * p), nrow = n))))
+y = Q[, p + 1]
+x = Q[, 2]
+```
+
+Let's make sure it's orthogonal:
+
+```{r}
+x %*% y
+```
+
+If they're orthogonal and y is mean-centered, what is the correlation?
+
+```{r}
+cor(x, y)
+```
+
+If the correlation is 0, what is $b_1$, the slope? It has to be zero. Thus $b_0$ has to be $bar{x}$. Since x was also orthogonalized to the vector of 1's, it's centered and hence has average = 0. So both intercept and slope are 0:
+
+What is $b$?
+
+```{r}
+mod = lm(y ~ x)
+coef(mod)
+```
+
+What is $R^2$? Since $x$ and $y$ are orthogonal... a projection onto the colspace of $X$ gets annhilated.
+
+```{r}
+summary(mod)$r.squared
+```
+
+# Random correlations are non-zero
+
+```{r}
+X = rnorm(n)
+x = x - mean(x)
+y = rnorm(n)
+y = y - mean(y)
+```
+
+In this setup, $x$ and $y$ are centered random vectors. Are they orthogonal?
+
+```{r}
+x %*% y
+```
+
+Nope... what about correlated?
+
+```{r}
+cor(x, y)
+```
+
+They nearly uncorrelated. How is this possible? Random chance AKA "chance capitalization"!
+
+What about the best fitting line?
+
+```{r}
+mod = lm(y ~ x)
+coef(mod)
+```
+
+Slope is about -0.8 which is small but non-zero.
+
+What is $R^2$? Since $x$ and $y$ are nearly orthogonal... a projection onto the colspace of $X$ gets nearly annhilated.
+
+```{r}
+summary(mod)$r.squared
+```
+
+but not entirely. Lesson learned: random noise can be correlated with the response $y$ and give you the illusion of fit!
+
+# The monotonicity of SSR (or $R^2$) with p
+
+As p increases, $R^2$ goes up. Here's a nice exercise:
+
+```{r}
+y = rnorm(n)
+Rsqs = array(NA, n)
+
+#we know that Rsq = 0 for the null model
+Rsqs[1] = 0
+
+#create a matrix with the correct number of rows but no columns
+X = matrix(NA, nrow = n, ncol = 0)
+
+#for every new p, tack on a new random continuos predictor:
+for (p_plus_one in 2 : n){
+  X = cbind(X, rnorm(n))
+  Rsqs[p_plus_one] = summary(lm(y ~ X))$r.squared
+}
+```
+
+Now let's plot it and see what happens:
+
+```{r}
+pacman::p_load(ggplot2)
+base = ggplot(data.frame(p_plus_one = 1 : n, Rsq = Rsqs))
+base + geom_line( aes(x = p_plus_one, y = Rsq))
+```
+
+With each additional predictor, what happens to $R^2$?
+
+```{r}
+base + geom_line(aes(x = p_plus_one, y = c(0, diff(Rsq))))
+```
+
+$R^2$ always increases:
+
+```{r}
+all(diff(Rsqs) > 0)
+```
+
+
+How can this possibly be?? The $x$'s are not related to $y$ whatsoever!!
+
+Chance capitalization prevails. Each additional predictor picks up another dimension to add to the column space of $X$. Eventually, the projection explains *all* the variance. If $n = p + 1$, that matrix is square and of full rank, hence $\hat{y} = y$ and all residuals $e = 0$ since it is merely solving $n$ linearly independent equations.
+
+So here's an idea. To get a perfect fit, just augment your design matrix with $n - (p + 1)$ random vectors and you get $R^2 = 100\%$!! There must be something wrong with this!!
+
+Even if $p$ is large and $<n$, you are getting a lot of fit for free. So there's something wrong with this too!
+
+This is called overfitting.

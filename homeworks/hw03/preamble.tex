@@ -182,6 +182,8 @@
 
 %shortcuts for vector and matrix notation
 \newcommand{\A}{\bv{A}}
+\renewcommand{\b}{\bv{b}}
+\newcommand{\w}{\bv{w}}
 \newcommand{\At}{\A^T}
 \newcommand{\Ainv}{\inverse{\A}}
 \newcommand{\B}{\bv{B}}
@@ -208,13 +210,14 @@
 \newcommand{\Pii}{P_{ii}}
 \newcommand{\Pij}{P_{ij}}
 \newcommand{\IminP}{(\I-\P)}
-\newcommand{\Xt}{\bv{X}^T}
-\newcommand{\XtX}{\Xt\X}
-\newcommand{\XtXinv}{\parens{\Xt\X}^{-1}}
+\newcommand{\Xt}{X^\top}
+\newcommand{\XtX}{\Xt X}
+\newcommand{\XtXinv}{\parens{\Xt X}^{-1}}
 \newcommand{\XtXinvXt}{\XtXinv\Xt}
-\newcommand{\XXtXinvXt}{\X\XtXinvXt}
+\newcommand{\XXtXinvXt}{X\XtXinvXt}
 \newcommand{\x}{\bv{x}}
 \newcommand{\onevec}{\bv{1}}
+\newcommand{\zerovec}{\bv{0}}
 \newcommand{\oneton}{1, \ldots, n}
 \newcommand{\yoneton}{y_1, \ldots, y_n}
 \newcommand{\yonetonorder}{y_{(1)}, \ldots, y_{(n)}}
@@ -271,6 +274,7 @@
 \newcommand{\fivevec}[5]{\bracks{\begin{array}{c} #1 \\ #2 \\ #3 \\ #4 \\ #5 \end{array}}}
 \newcommand{\twobytwomat}[4]{\bracks{\begin{array}{cc} #1 & #2 \\ #3 & #4 \end{array}}}
 \newcommand{\threebytwomat}[6]{\bracks{\begin{array}{cc} #1 & #2 \\ #3 & #4 \\ #5 & #6 \end{array}}}
+
 
 %shortcuts for conventional compound symbols
 \newcommand{\thetainthetas}{\theta \in \Theta}

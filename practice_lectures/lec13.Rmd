@@ -1,7 +1,7 @@
 ---
-title: "Lecture 12 MATH 390.4 Queens College"
+title: "Lecture 13 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
-date: "March 14, 2018"
+date: "March 19, 2018"
 ---
 
 ## Least Squares as Projections
@@ -86,7 +86,7 @@ Same thing! Let's do that projection over and over onto the complement of the co
 head((I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% (I - H) %*% y)
 ```
 
-Same thing for the same reason.
+Same thing for the same reason - once you project, you're done!
 
 Let's demonstrate the sum of squares identity. We already have SST and SSE computed.
 
@@ -113,7 +113,7 @@ qrX = qr(X)
 Q = qr.Q(qrX)
 R = qr.R(qrX)
 
-sum(Q[, 1]^2)  #normalized?
+sum(Q[, 1]^2) #normalized?
 sum(Q[, 2]^2) #normalized?
 Q[, 1] %*% Q[, 2] #orthogonal?
 Q[, 2] %*% Q[, 3] #orthogonal?
@@ -127,6 +127,7 @@ head(yhat_via_Q)
 ```{r}
 rm(list = ls())
 ```
+
 
 # Correlation zero means orthogonality
 
@@ -175,7 +176,7 @@ y = rnorm(n)
 y = y - mean(y)
 ```
 
-In this setup, $x$ and $y$ are centered random vectors. Are they orthogonal?
+In this setup, $x$ and $y$ are centered Gaussian random vectors. Are they orthogonal?
 
 ```{r}
 x %*% y
@@ -187,7 +188,7 @@ Nope... what about correlated?
 cor(x, y)
 ```
 
-They nearly uncorrelated. How is this possible? Random chance AKA "chance capitalization"!
+They *nearly* uncorrelated but they still have some correlation. How is this possible? There is "random chance"" AKA "chance capitalization"!
 
 What about the best fitting line?
 
@@ -232,7 +233,7 @@ Now let's plot it and see what happens:
 ```{r}
 pacman::p_load(ggplot2)
 base = ggplot(data.frame(p_plus_one = 1 : n, Rsq = Rsqs))
-base + geom_line( aes(x = p_plus_one, y = Rsq))
+base + geom_line(aes(x = p_plus_one, y = Rsq))
 ```
 
 With each additional predictor, what happens to $R^2$?

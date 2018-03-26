@@ -1,5 +1,821 @@
 ---
 title: "Lecture 14 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
-date: "March 21, 2018"
+date: "March 26, 2018"
 ---
+
+# The Grammar of graphics and ggplot
+
+First load the package and the dataset of interest as a dataframe:
+
+```{r}
+pacman::p_load(ggplot2, quantreg)
+cars = MASS::Cars93 #dataframe
+```
+
+ggplot is based on the "Grammar of Graphics", a concept invented by the Statistician / Computer Scientist Leland Wilkinson who worked on SPSS, Tableau and now he works at H20, software that analyzes big data. The reference of interest is [here](http://papers.rgrossman.com/proc-094.pdf). He drew on ideas from John Tukey (one of the great statistician of the previous generation) while he was at Bell Labs, Andreas Buja (one of my professors at Penn) and Jerome Friedman (the professor that taught my data mining course at Stanford - remember the diamonds story?) 
+
+It is a language that allows us to describe the components of a graphic. Previously, graphics were done in one shot and it was clunky. ggplot is a library written by Hadley Wickham based on this concept. Wickham is probably the most famous person in statistical computing today. He has commit rights in R and is one of the architects of RStudio. He calls grammar of graphics "graphical poems". Here are the basic components:
+
+* an underlying data frame
+* an "aesthetic" that maps visualization axes in the eventual plot(s) to variables in the data frame
+* a "layer" which is composed of
+  - a geometric object
+  - a statistical transformation
+  - a position adjustment
+* a "scale" for each aesthetic
+* a "coordinate" system for each aesthetic
+* optional "facets" (more graphics)
+* optional "labels" for the title, axes title, points, etc.
+
+Don't worry - everything has "smart defaults" in Wickham's implementation so you don't have to worry about most things. We will explore some of the features below. Here's a good [cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf).
+
+ggplot is layered where each component is an object. The objects are added to each other since the "+" operator is overloaded to accept these additions. This is nice because each component can be saved and reused. The following initialized the graphics:
+
+```{r}
+ggplot(cars)
+```
+
+Nothing happened - except the plot window went gray (the smart default). This is already rendering a graphic, but since it hasn't been given any of the required information, it has nothing to display. Next we create an aesthetics indicating a one-way plot (one variable only).
+
+```{r}
+ggplot(cars) + 
+  aes(Price)
+```
+
+Notice how it can understand the variable name as an object name.
+
+Since we've given it an aesthetics object, it now knows which variable is the x axis (default). It already knows the ranges of the variable (a smart default) and a default scale and coordinate system (smart defaults).
+
+Usually this is done in one step by passing the aesthetics object into the ggplot:
+
+```{r}
+ggplot(cars, aes(Price))
+```
+
+Now we need to pick a layer by specifying a geometry. This is a type of plot. Since the predictor type of price is continuous, let's pick the "histogram" using the `geom_histogram` function:
+
+```{r}
+ggplot(cars, aes(Price)) +
+  geom_histogram()
+```
+
+This can be customized:
+
+```{r}
+ggplot(cars, aes(Price)) +
+  geom_histogram(binwidth = 1, col = "darkgreen", fill = "blue", alpha = 0.4)
+```
+
+Want to save it for your latex?
+
+```{r}
+ggsave("plot.png")
+system("open plot.png")
+ggsave("plot.pdf")
+system("open plot.pdf")
+```
+
+Here are some other options besides the histogram:
+
+```{r}
+ggplot(cars, aes(Price)) +
+  geom_dotplot()
+ggplot(cars, aes(Price)) +
+  geom_area(stat = "bin", binwidth = 2)
+ggplot(cars, aes(Price)) +
+  geom_freqpoly()
+ggplot(cars, aes(Price)) +
+  geom_density(fill = "green", alpha = 0.4)
+```
+
+
+Can we compare price based on different conditions? Yes, we can subset the data and use color and alpha:
+
+```{r}
+ggplot(cars, aes(Price)) +
+  geom_density(data = subset(cars, Man.trans.avail == "Yes"), col = "grey", fill = "darkgreen", alpha = 0.4) +
+  geom_density(data = subset(cars, Man.trans.avail == "No"), col = "grey", fill = "red", alpha = 0.4)
+```
+
+Sidebar: why are cars that have manual transmissions available cheaper?
+
+We can look at this also using a smoothed estimate of the conditional distributions:
+
+```{r}
+ggplot(cars, aes(Price)) +
+  geom_histogram(data = subset(cars, Man.trans.avail == "Yes"), binwidth = 1, col = "grey", fill = "darkgreen", alpha = 0.4) +
+  geom_histogram(data = subset(cars, Man.trans.avail == "No"), binwidth = 1, col = "grey", fill = "red", alpha = 0.4)
+```
+
+What if the variable is not continuous e.g. Cylinders? We can use a bar graph / bar plot.
+
+```{r}
+ggplot(cars, aes(Cylinders)) +
+  geom_bar()
+```
+
+This is essential frequency by level of the categorical variable.
+
+Now let's move on to looking at one variable versus another variable. For example price by engine power:
+
+```{r}
+ggplot(cars, aes(x = Horsepower, y = Price))
+```
+
+Since we've given it an aesthetics object, it now knows which variable is the x axis and which variable is the y axis. It already knows the ranges of the variables (a smart default) and a default scale and coordinate system (smart defaults).
+
+Just as before, now we need to pick a layer by specifying a geometry. This is a type of plot. Let's pick the "scatterplot" using the `geom_point` function:
+
+```{r}
+ggplot(cars, aes(x = Horsepower, y = Price)) +
+  geom_point()
+```
+
+Now we have a nice scatterplot. This function uses the inherited data, the inherited aesthetics. Since this "geometry" is a "layer", we can pass in options to the layer.
+
+```{r}
+base_and_aesthetics = ggplot(cars, aes(x = Horsepower, y = Price))
+base_and_aesthetics + geom_point(col = "red", fill = "green", shape = 23, size = 3, alpha = 0.3)
+```
+
+Let's handle names of axes, title and ranges:
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics +
+  ggtitle("Average Car Price vs. Engine Power", subtitle = "in the Cars93 dataset") +
+  ylab("Price (in $1000's)")
+base_and_aesthetics_with_titles +
+  xlim(0, 400) +
+  ylim(0, 50) +
+  geom_point()
+```
+
+Let's transform the variables:
+
+```{r}
+base_and_aesthetics_with_titles +
+  scale_x_continuous(trans = "log2") +
+  geom_point()
+```
+
+Each unit increase on the x-axis now represent a doubling increase in x (although the whole scale only spans 3 units). But look at how the grid didn't keep up. Let's fix this:
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_point() +
+  scale_x_continuous(trans = "log2", breaks = round(seq(0, max(cars$Horsepower), length.out = 6)))
+```
+
+We can do the same to the y axis:
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_point() +
+  scale_y_continuous(trans = "log2")
+  scale_x_continuous(trans = "log2", breaks = round(seq(0, max(cars$Horsepower), length.out = 6)))
+```
+
+Let's look at some more geometries.
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_point() +
+  geom_smooth()
+```
+
+Here, I've added two geometries on the same aesthetic! This attempts to explain the relationship $f(x)$ using smoothing. Let's go for more.
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_point() +
+  geom_smooth() +
+  geom_rug()
+```
+
+This allows us to also see the marginal distributions of the two variables.
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_point() +
+  geom_smooth() +
+  geom_quantile(col = "red") +
+  geom_rug()
+```
+
+This fits a line and tries to indicate statistical significance of the line. We have *not* covered any statistics in this class yet (ironic!) ... so ignore how the window is generated.
+
+Can we display more than two dimensions? Yes. Let's indicate a third dimension with shape (only works with factors).
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics_with_titles +
+  ggtitle("Average Car Price by Power and Transmission")
+base_and_aesthetics_with_titles +
+  geom_point(aes(shape = Man.trans.avail)) +
+  geom_smooth() +
+  geom_rug()
+```
+
+Can we display more than three dimensions? Yes. Let's indicate a fourth dimension with color.
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics_with_titles +
+  ggtitle("Average Car Price by Power, Transmission & Drivetrain")
+base_and_aesthetics_with_titles +
+  geom_point(aes(shape = Man.trans.avail, col = DriveTrain)) +
+  geom_smooth() +
+  geom_rug()
+```
+
+Can we go to a fifth dimension? Maybe?
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics_with_titles +
+  ggtitle("Average Car Price by Power, Transmission & Drivetrain")
+base_and_aesthetics_with_titles +
+  geom_point(aes(shape = Man.trans.avail, col = DriveTrain, alpha = Weight)) + #size?
+  geom_smooth() +
+  geom_rug()
+```
+
+A seventh? We can use text labels adjacent to the scatterplot's points.
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics_with_titles +
+  ggtitle("Average Car Price by Power, Transmission, Drivetrain,  Weight & #Cylinders")
+base_and_aesthetics_with_titles +
+  geom_point(aes(shape = Man.trans.avail, col = DriveTrain, alpha = Weight)) + #size?
+  geom_text(aes(label = Cylinders), vjust = 1.5, col = "darkgrey", lineheight = 0.3, size = 3) +
+  geom_smooth() +
+  geom_rug()
+```
+
+Getting difficult to see what's going on.
+
+Let's move away from the scatterplot to just density estimation:
+
+```{r}
+base_and_aesthetics_with_titles = base_and_aesthetics_with_titles +
+  ggtitle("Average Car Price by Power") #reset the title
+base_and_aesthetics_with_titles +
+  geom_density2d()
+```
+
+Other alternatives:
+
+```{r}
+base_and_aesthetics_with_titles +
+  geom_bin2d(binwidth = c(8, 3))
+pacman::p_load(hexbin)
+base_and_aesthetics_with_titles +
+  geom_hex()
+```
+
+This is like a two-dimensional histogram where the bar / hexagon heights are seen with color.
+
+What if the x-axis is categorical for example Cylinders versus price? Typical is the "box and whiskers" plot:
+
+```{r}
+ggplot(cars, aes(x = Cylinders, y = Price)) +
+  geom_boxplot()
+```
+
+Clear relationship!
+
+How about multiple subplots based on the subsetting we did in the histograms? This is called "faceting". Here are two bivariate visualizations laid horizontally:
+
+```{r}
+ggplot(cars, aes(x = Horsepower, y = Price)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(. ~ Man.trans.avail)
+```
+
+Or alternatively, vertically:
+
+```{r}
+ggplot(cars, aes(x = Horsepower, y = Price)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(Man.trans.avail ~ .)
+```
+
+And we can even double-subset:
+
+```{r}
+ggplot(cars, aes(x = Horsepower, y = Price)) +
+  geom_point() +
+  facet_grid(Man.trans.avail ~ Origin, scales = "free")
+```
+
+And we can even triple-subset or more:
+
+```{r}
+cars$MedWeight = ifelse(cars$Weight > median(cars$Weight), ">MedWeight", "<MedWeight")
+ggplot(cars, aes(x = Horsepower, y = Price)) +
+  geom_point() +
+  facet_grid(Man.trans.avail ~ Origin + MedWeight, scales = "free")
+```
+
+These three varibles seem somewhat independent.
+
+There are other primitives like `geom_abline` which graphs a line and `geom_segment` we will see today. Note that if you want plots rendered within functions or loops you have to explicitly call the `plot` function:
+
+```{r}
+for (nsim in 1 : 3){
+  graphics_obj = ggplot(data.frame(x = rnorm(1000))) + geom_histogram(aes(x))
+  graphics_obj
+}
+```
+
+versus:
+
+```{r}
+for (nsim in 1 : 3){
+  graphics_obj = ggplot(data.frame(x = rnorm(1000))) + geom_histogram(aes(x))
+  plot(graphics_obj)
+}
+```
+
+
+Lastly, ggplot offers lots of nice customization themes:
+
+```{r}
+graphics_obj = base_and_aesthetics_with_titles +
+  geom_point() +
+  geom_smooth() +
+  geom_quantile(col = "red") +
+  geom_rug()
+graphics_obj + theme_bw()
+graphics_obj + theme_dark()
+graphics_obj + theme_classic()
+
+```
+
+Packages offer even more:
+
+```{r}
+pacman::p_load(forcats, lazyeval, ggthemes)
+graphics_obj + theme_economist()
+graphics_obj + theme_stata()
+graphics_obj + theme_tufte()
+```
+
+and of course, the whimsical one and only:
+
+
+```{r}
+pacman::p_load(xkcd, extrafont)
+download.file("http://simonsoftware.se/other/xkcd.ttf", dest = "xkcd.ttf", mode = "wb")
+#MAC
+# system("mv xkcd.ttf /Library/Fonts")
+# font_import(path = "/Library/Fonts", pattern = "xkcd", prompt = FALSE)
+# fonts()
+# fonttable()
+# loadfonts()
+#WINDOWS
+font_import(path = ".", pattern = "xkcd", prompt = FALSE)
+fonts()
+fonttable()
+loadfonts(device="win")
+
+graphics_obj + theme_xkcd()
+```
+
+
+# Overfitting
+
+Let's generate a linear model ($f = h^* \in \mathcal{H}$) and let $\epsilon$ be random noise (the error due to ignorance) for $\mathbb{D}$ featuring $n = 2$.
+
+This simulation is random, but to ensure it looks the same to me right now as it does in class (and to you at home), let's "set the seed" so it is deterministic.
+
+```{r}
+set.seed(1003)
+```
+
+Now let's "randomly generate" the data:
+
+```{r}
+n = 2
+beta_0 = 1
+beta_1 = 1
+x = rnorm(n)
+#best possible model
+h_star_x = beta_0 + beta_1 * x
+
+#actual data differs due to information we don't have
+epsilon = rnorm(n)
+y = h_star_x + epsilon
+
+#scatterplot it
+df = data.frame(x = x, y = y, h_star_x = h_star_x)
+basic = ggplot(df, aes(x, y))+
+  xlim(-4, 4) + ylim(-5, 5) +
+  geom_point()
+basic
+```
+
+Let's now fit a linear model to this and plot:
+
+```{r}
+mod = lm(y ~ x)
+b_0 = coef(mod)[1]
+b_1 = coef(mod)[2]
+basic + geom_abline(intercept = b_0, slope = b_1, col = "grey")
+```
+
+Note that obviously:
+
+```{r}
+summary(mod)$r.squared
+summary(mod)$sigma #RMSE - technically cannot divide by zero so cannot estimate the RMSE - I made a slight technical error last class saying RMSE -> 0. I should've said s_e -> 0
+sd(mod$residuals) #s_e
+```
+
+And let's plot the true function $h^*$ below as well in green:
+
+```{r}
+basic_and_lines = basic + 
+  geom_abline(intercept = b_0, slope = b_1, col = "grey") +
+  geom_abline(intercept = beta_0, slope = beta_1, col = "green") + 
+  geom_segment(aes(x = x, y = h_star_x, xend = x, yend = y), col = "red")
+basic_and_lines
+```
+
+The red lines are the epsilons:
+
+```{r}
+epsilon
+```
+
+Now let's envision some new data not in $\mathbb{D}$. We will call this "out of sample" (oos) since $\mathbb{D}$ defined our "sample" we used to build the model. For the oos data, we predict on it using our linear model $g$ which is far from the best linear model $h^*$ and we look at its residuals $e$:
+
+```{r}
+n_new = 50
+x_new = rnorm(n_new)
+h_star_x_new = beta_0 + beta_1 * x_new
+epsilon_new = rnorm(n_new)
+y_new = h_star_x_new + epsilon_new
+y_hat_new = b_0 + b_1 * x_new
+
+df_new = data.frame(x = x_new, y = y_new, h_star_x = h_star_x_new, y_hat = y_hat_new, e = y - y_hat_new)
+
+basic_and_lines + 
+  geom_point(data = df_new) + 
+  geom_segment(data = df_new, aes(x = x, y = y_hat, xend = x, yend = y), col = "purple")
+```
+
+Instead of the residuals let's look at its true errors, epsilon, the distance from $h^*$:
+
+```{r}
+basic_and_lines + 
+  geom_point(data = df_new) + 
+  geom_segment(data = df_new, aes(x = x, y = h_star_x, xend = x, yend = y), col = "darkgrey")
+```
+
+The errors that the overfit model are worse than the errors made by the best model. In other words, the residual standard error on the new "out of sample" data is larger than the actual epsilon standard error:
+
+```{r}
+sd(df_new$e)
+sd(epsilon_new)
+```
+
+How did we get in this mess? We can see from the picture we are using the grey line as $g$ but we should be using the green line $h^*$. We are using the grey line because we used the original $\epsilon$ to fit. BAD idea - won't generalize to the future.
+
+```{r}
+rm(list = ls())
+```
+
+The problem is bad for $n = 2$. But is it always bad? Let's take a look at $n = 100$ with a strong linear relationship with one predictor. 
+
+```{r}
+set.seed(1003)
+n = 100
+beta_0 = 1
+beta_1 = 5
+xmin = 0
+xmax = 1
+x = runif(n, xmin, xmax)
+#best possible model
+h_star_x = beta_0 + beta_1 * x
+
+#actual data differs due to information we don't have
+epsilon = rnorm(n)
+y = h_star_x + epsilon
+```
+
+The true relationship is plotted below in green.
+
+```{r}
+df = data.frame(x = x, y = y, h_star_x = h_star_x)
+basic = ggplot(df, aes(x, y)) +
+  geom_point() +
+  geom_abline(intercept = beta_0, slope = beta_1, col = "darkgreen")
+basic
+```
+
+And the estimated line $g$ (in blue) is pretty close:
+
+```{r}
+mod = lm(y ~ x)
+b = coef(mod)
+basic +
+  geom_abline(intercept = b[1], slope = b[2], col = "blue")
+```
+
+They're basically right on top of each other: estimation error near zero.
+
+```{r}
+b
+c(beta_0, beta_1)
+```
+
+And the $R^2$ is:
+
+```{r}
+summary(mod)$r.squared
+```
+
+Not great... plenty of room for overfitting the nonsense epsilons.
+
+Now what happens if we add a random predictor? 
+
+* We know that $R^2$ will go up. 
+* But since this predictor is random, it is independent of the best model $h^*(x)$, hence it will constitute *overfitting*. 
+* Overfitting is bad because it induces estimation error and $g$ will diverge from $h*$ (previous demo)
+* This divergence leads to bad oos error (generalization error) meaning subpar predictions when we actually use the model in the future
+
+Okay - but how bad? It only depends on how much $g$ diverges from $h^*$. Let's look at this divergence slowly. We create a new oos data set made from evenly spaced $x$ values across its range and random values of the nonsense predictors. We use this to calculated oos $s_e$.
+
+```{r}
+p_fake = 20
+X = matrix(c(x, rnorm(n * p_fake)), ncol = 1 + p_fake)
+mod = lm(y ~ X)
+
+nstar = 1000
+Xstar = matrix(c(seq(xmin, xmax, length.out = nstar), rnorm(nstar * p_fake)), ncol = 1 + p_fake)
+y_stars = beta_0 + beta_1 * Xstar[, 1] + rnorm(nstar)
+y_hat_stars = cbind(1, Xstar) %*% as.matrix(coef(mod))
+s_e_oos = sd(y_stars - y_hat_stars)
+basic +
+  geom_line(data = data.frame(x = Xstar[, 1], y = y_hat_stars), aes(x = x, y = y), col = "orange") +
+  ggtitle(paste("Linear Model with", p_fake, "fake predictors"), paste("Rsq =", round(summary(mod)$r.squared * 100, 2), "percent, oos s_e =", round(s_e_oos, 2)))
+```
+
+Lesson: it takes a bit of time to overfit badly. Don't worry about a few extra degrees of freedom if you have $n$ much larger than $p$. But it will eventually be corrosive!
+
+Let's examine this again. This time we use one data set which is split between training and testing.
+
+```{r}
+set.seed(1003)
+n = 100
+beta_0 = 1
+beta_1 = 5
+xmin = 0
+xmax = 1
+p = 50
+X = matrix(runif(n * p, xmin, xmax), ncol = p)
+
+#best possible model - only one predictor matters!
+h_star_x = beta_0 + beta_1 * X[,1 ]
+
+#actual data differs due to information we don't have
+epsilon = rnorm(n)
+y = h_star_x + epsilon
+```
+
+Now we split $\mathbb{D}$ into training and testing. We define $K$ first, the inverse proportion of the test size.
+
+```{r}
+K = 5 #i.e. the test set is 1/5th of the entire historical dataset
+
+#a simple algorithm to do this is to sample indices directly
+test_indices = sample(1 : n, 1 / K * n)
+train_indices = setdiff(1 : n, test_indices)
+
+#now pull out the matrices and vectors based on the indices
+X_train = X[train_indices, ]
+y_train = y[train_indices]
+X_test = X[test_indices, ]
+y_test = y[test_indices]
+
+#let's ensure these are all correct
+dim(X_train)
+dim(X_test)
+length(y_train)
+length(y_test)
+```
+
+Now let's fit the model $g$ to the training data and compute in-sample error metrics:
+
+```{r}
+mod = lm(y_train ~ ., data.frame(X_train))
+summary(mod)$r.squared
+sd(mod$residuals)
+```
+
+Now let's see how we do on the test data. We compute $R^2$ and $s_e$ out of sample:
+
+```{r}
+y_hat_oos = predict(mod, data.frame(X_test))
+oos_residuals = y_test - y_hat_oos
+1 - sum(oos_residuals^2) / sum((y_test - mean(y_test))^2)
+sd(oos_residuals)
+```
+
+MUCH worse!! Why? We overfit big time...
+
+Can we go back now and fit a new model and see how we did? NO...
+
+So how are we supposed to fix a "bad" model? We can't unless we do something smarter. We'll get there.
+
+# Nonlinear Linear Regression: Polynomial Regression
+
+Let's generate a polynomial model of degree 2 ($f = h^* \in \mathcal{H}$) and let $\epsilon$ be random noise (the error due to ignorance) for $\mathbb{D}$ featuring $n = 2$.
+
+```{r}
+set.seed(1003)
+n = 25
+beta_0 = 1
+beta_1 = 0
+beta_2 = 1
+x = runif(n, -2, 5)
+#best possible model
+h_star_x = beta_0 + beta_1 * x + beta_2 * x^2
+
+#actual data differs due to information we don't have
+epsilon = rnorm(n)
+y = h_star_x + epsilon
+
+#scatterplot it
+df = data.frame(x = x, y = y, h_star_x = h_star_x)
+basic = ggplot(df, aes(x, y)) +
+  geom_point()
+basic
+```
+
+Let's try to estimate with a line:
+
+```{r}
+linear_mod = lm(y ~ x)
+b_linear = summary(linear_mod)$coef
+basic + geom_abline(intercept = b_linear[1], slope = b_linear[2], col = "red")
+```
+
+The relationship is "underfit". $\mathcal{H}$ is not rich enough right now to express something close to $f(x)$. But it is better than the null model!
+
+Now let's do a polynomial regression of degree two. Let's do so manually:
+
+```{r}
+X = as.matrix(cbind(1, x, x^2))
+b = solve(t(X) %*% X) %*% t(X) %*% y
+b
+```
+
+These are about the same as the $\beta_0, \beta_1$ and $\beta_2$ as defined in $f(x)$ the true model. In order to graph this, we can no longer use the routine `geom_abline`, we need to use `stat_function`.
+
+```{r}
+plot_function_degree_2 = function(x, b){
+  b[1] + b[2] * x + b[3] * x^2
+}
+
+basic + stat_function(fun = plot_function_degree_2, args = list(b = b), col= "darkgreen")
+```
+
+Now let's try polynomial of degree 3:
+
+```{r}
+X = as.matrix(cbind(1, x, x^2, x^3))
+b = solve(t(X) %*% X) %*% t(X) %*% y
+b
+
+plot_function_degree_3 = function(x, b){
+  b[1] + b[2] * x + b[3] * x^2 + b[4] * x^3
+}
+
+basic + stat_function(fun = plot_function_degree_3, args = list(b = b), col= "darkgreen")
+```
+Still the same. Why? The $x^3$ term is like adding one "nonsense" predictor. One nonsense predictor marginally affects $R^2$ but it doesn't matter too much.
+
+Now let's try polynomial of degree 8:
+
+```{r}
+X = as.matrix(cbind(1, x, x^2, x^3, x^4, x^5, x^6, x^7, x^8))
+b = solve(t(X) %*% X) %*% t(X) %*% y
+b
+
+plot_function_degree_8 = function(x, b){
+  b[1] + b[2] * x + b[3] * x^2 + b[4] * x^3 + b[5] * x^4 + b[6] * x^5 + b[7] * x^6 + b[8] * x^7 + b[9] * x^8 
+}
+
+basic + stat_function(fun = plot_function_degree_8, args = list(b = b), col= "darkgreen")
+```
+
+We are seeing now a little bit of "overfitting" in the edge(s). We now have $p=11$ and $n=100$. We can do a lot worse!
+
+Let's learn how to do this in R first without having to resort to manual linear algebra. R has a function called "poly" that can be used *inside* formula declarations.
+
+Let's first fit the degree 2 model:
+
+```{r}
+degree_2_poly_mod = lm(y ~ poly(x, 2, raw = TRUE))
+b_poly_2 = coef(degree_2_poly_mod)
+b_poly_2
+```
+
+Same as we got before! We use "raw" polynomials to keep them interpretable and on the same scale as the manual models we were fitting.
+
+Now let's do polynomial of degree 13:
+
+```{r}
+degree_13_poly_mod = lm(y ~ poly(x, 13, raw = TRUE))
+b_poly_13 = coef(degree_13_poly_mod)
+
+plot_function_degree_13 = function(x, b){
+  b[1] + b[2] * x + b[3] * x^2 + b[4] * x^3 + b[5] * x^4 + b[6] * x^5 + b[7] * x^6 + b[8] * x^7 + b[9] * x^8 + b[10] * x^9  + b[11] * x^10 + b[12] * x^11 + b[13] * x^12 + b[14] * x^13
+}
+
+basic + stat_function(fun = plot_function_degree_13, args = list(b = b_poly_13), col = "purple")
+```
+
+What's happening for small values of $x$ (and a bit for large values)? This is called [Runge's Phenomenon](https://en.wikipedia.org/wiki/Runge%27s_phenomenon) meaning that the boundary activity of high-order polynomials has very large derivatives. Let's go back to the same scale as before and see what's happening:
+
+```{r}
+basic + 
+  coord_cartesian(xlim = c(-2, 5), ylim = c(-3, 25)) + 
+  stat_function(fun = plot_function_degree_13, args = list(b = b_poly_13), col = "purple")
+```
+
+
+What happens during extrapolation? Let's look at the (a) linear model, (b) polynomial model with degree 2 and (c) polynomial with degree 13.
+
+```{r}
+xmin = -10
+xmax = 8
+basic + 
+  coord_cartesian(xlim = c(xmin, xmax), ylim = c(-10, 35)) + 
+  geom_abline(intercept = b_linear[1], slope = b_linear[2], col = "red") + 
+  stat_function(fun = plot_function_degree_2, args = list(b = b_poly_2), col = "blue", xlim = c(xmin, xmax)) +
+  stat_function(fun = plot_function_degree_13, args = list(b = b_poly_13), col = "purple", xlim = c(xmin, xmax))
+```
+
+Polynomial models have *TERRIBLE* extrapolation ability - totally unpredictable.
+
+Can we achieve $R^2 = 100\%$ using polynomial regression? Yes. Here's an example in one dimension. These are called "interpolation polynomials". In one dimension, as long as the $x$ values are distinct, $n$ data point can be fit by a $n - 1$ degree polynomial. Here's an example with a few data points:
+
+```{r}
+set.seed(1003)
+n = 5
+beta_0 = 1
+beta_1 = 0
+beta_2 = 1
+x = runif(n)
+y = runif(n)
+
+#scatterplot it
+df = data.frame(x = x, y = y, h_star_x = h_star_x)
+basic = ggplot(df, aes(x, y)) +
+  geom_point()
+basic
+```
+
+Now fit polynomial models:
+
+```{r}
+degree_4_poly_mod = lm(y ~ poly(x, 4, raw = TRUE))
+b_poly_4 = coef(degree_4_poly_mod)
+
+plot_function_degree_4 = function(x, b){
+  b[1] + b[2] * x + b[3] * x^2 + b[4] * x^3 + b[5] * x^4
+}
+
+basic + stat_function(fun = plot_function_degree_4, args = list(b = b_poly_4), col = "purple")
+```
+
+Perfect fit!
+
+```{r}
+summary(degree_4_poly_mod)$r.squared
+```
+
+This is the same thing we've seen before! If $n = p + 1$, then the design matrix is square and there is no need to project onto a lower dimensional subspace. To estimate the linear model, one only needs to solve $n$ equations with $n$ unknowns.
+
+My recommendations:
+1) Keep polynomial degree low. Preferably 2. Anything past 2 is not interpretable anyway. We didn't talk about "interpretability" of models yet, but you get the idea.
+2) Be very careful not to extrapolate: make sure future predictions have the measurements within range of the training data $\mathbb{D}$. Extrapolations are going to be very, very inaccurate. Polynomial regressions I'm sure have gotten data scientists fired before.
+
+# Linear Models with Interaction Terms
+
+Let's take a look at some data about the US
+
+```{r}
+mod = lm(medv ~ rm * age, boston)
+summary(mod)
+```
+
+
+
+
+
+
+

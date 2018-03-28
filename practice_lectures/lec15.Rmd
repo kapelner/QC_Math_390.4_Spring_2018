@@ -249,16 +249,125 @@ My recommendations:
 
 # Linear Models with Interaction Terms
 
-Let's take a look at some data about the US
+Let's take a look at some data about diamonds
 
 ```{r}
-mod = lm(medv ~ rm * age, boston)
-summary(mod)
+data(diamonds) #from the ggplot2 package
+?diamonds
+str(diamonds)
+summary(diamonds)
+```
+
+The natural response is price:
+
+```{r}
+ggplot(diamonds) + geom_histogram(aes(price), binwidth = 200)
+mean(diamonds$price)
+sd(diamonds$price)
 ```
 
 
+A natural increasing relationship will likely be found between weight and price. Let's see it visually:
+
+```{r}
+base = ggplot(diamonds, aes(x = carat, y = price))
+base + geom_point()
+```
+
+Let's see a best guess linear relationship:
+
+```{r}
+mod = lm(price ~ carat, diamonds)
+b = coef(mod)
+summary(mod)$r.squared
+summary(mod)$sigma
+base + geom_point() + geom_abline(intercept = b[1], slope = b[2], col = "green")
+```
+
+Let us add a third variable to this plot, color, a metric about the "yellowness" of the diamond. This is an ordinal categorical variable ranging from D (most clear i.e. best) to J (most yellow in this dataset i.e. worst).
 
 
+```{r}
+base +
+  geom_point(aes(col = color)) + scale_color_brewer(type = "div")
+```
+
+We can look at this with faceting too:
+
+```{r}
+base +
+  geom_point() +
+  facet_wrap(~ color, ncol = 3)
+```
 
 
+What do we see here? It looks like the slope of the price vs. carat linear model is affected by color. For instance, the "D" color diamonds' price increases much faster as weight increases than the "E" color diamonds' price increases in weight, etc. Why do you think this is?
 
+We can picture two of these linear models below by fitting two submodels, one for D and one for J:
+
+```{r}
+mod_D = lm(price ~ carat, subset(diamonds, color == "D"))
+b_D = coef(mod_D)
+mod_J = lm(price ~ carat, subset(diamonds, color == "J"))
+b_J = coef(mod_J)
+
+base +
+  geom_point(aes(col = color)) + scale_color_brewer(type = "div") +
+  geom_abline(intercept = b_D[1], slope = b_D[2]) +
+  geom_abline(intercept = b_J[1], slope = b_J[2])
+```
+
+This indicates a separate intercept and carat-slope for each color. How is this done? Interacting carat and slope:
+
+```{r}
+diamonds$color = factor(as.character(diamonds$color)) #I don't know why I needed to do this...
+mod = lm(price ~ carat * color, diamonds)
+coef(mod)
+summary(mod)$r.squared
+summary(mod)$sigma
+```
+
+The reference category is color D. This means every other color should start lower and have a lower slope. This is about what we see above.
+
+Let's fit a model with just one slope and differential intercepts:
+
+```{r}
+mod = lm(price ~ carat + color, diamonds)
+coef(mod)
+summary(mod)$r.squared
+summary(mod)$sigma
+```
+
+Lesson: allowing for this interaction is a small improvement, but an improvement nevertheless. Note that we do not have the tools to test this improvement and ascertain its statistical significance.
+
+Let's take a look at carat with another variable, depth, a continuous predictor. High depth indicates diamonds are skinny and tall; low depth indicates diamonds are flat like a pancake.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(col = depth), lwd = 0.5) + scale_colour_gradientn(colours = rainbow(5))
+```
+
+It seems people like flatter diamonds and are willing to pay more per carat. Let's see this in the regression:
+
+```{r}
+mod = lm(price ~ carat * depth, diamonds)
+coef(mod)
+summary(mod)$r.squared
+summary(mod)$sigma
+```
+
+If carat increases by one unit, how much does price increase by?
+
+Is this better than the model without the interaction?
+
+```{r}
+mod = lm(price ~ carat + depth, diamonds)
+summary(mod)$r.squared
+summary(mod)$sigma
+```
+
+Yes this extra degree of freedom seems to be worth it. Note that we do not have the tools to test this improvement and ascertain its statistical significance.
+
+# Model Selection
+
+We have now covered non-linearities (e.g. polynomial terms) and interactions.

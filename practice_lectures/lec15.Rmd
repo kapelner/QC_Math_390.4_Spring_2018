@@ -370,4 +370,12 @@ Yes this extra degree of freedom seems to be worth it. Note that we do not have 
 
 # Model Selection
 
-We have now covered non-linearities (e.g. polynomial terms) and interactions.
+We have now covered non-linearities (e.g. polynomial terms) and interactions. A new complication now clearly emerges. If I have $p$ predictors, there are many linear least squares models I can build (considering non-linear least squares models makes the space of models even larger!!)
+
+For instance, here are a bunch of models:
+
+```{r}
+lm(price ~ carat + depth, diamonds) #using a subset of the features
+lm(price ~ ., diamonds) #using a subset of the features
+```
+

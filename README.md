@@ -94,7 +94,7 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
 I *want* you to come to office hours! My office hours are:
 
 Time: Mon/Wed 3:35PM-4:30PM
-Location: Kiely Hall 604 (my office)
+Location: Kiely Hall 277 (the classroom)
 
 ## Grades and Class Standing
 

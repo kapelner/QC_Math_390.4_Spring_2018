@@ -9,6 +9,7 @@ date: "April 9, 2018"
 Let's take a look at some data about diamonds
 
 ```{r}
+pacman::p_load(ggplot2)
 data(diamonds) #from the ggplot2 package
 ?diamonds
 str(diamonds)

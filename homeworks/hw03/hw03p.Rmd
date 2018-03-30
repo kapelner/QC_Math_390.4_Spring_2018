@@ -1,7 +1,7 @@
 ---
 title: "HW03p"
 author: "[Your Name Goes Here]"
-date: "March 19, 2018"
+date: "April 13, 2018"
 output: pdf_document
 ---
 
@@ -9,4 +9,357 @@ output: pdf_document
 knitr::opts_chunk$set(error = TRUE) #this allows errors to be printed into the PDF
 ```
 
+1. Load pacakge `ggplot2` below using `pacman`.
+
+```{r}
+#TO-DO
+```
+
+The dataset `diamonds` is in the namespace now as it was loaded with the `ggplot2` package. Run the following code and write about the dataset below.
+
+```{r}
+?diamonds
+str(diamonds)
+```
+
+What is $n$, $p$, what do the features mean, what is the most likely response metric and why?
+
+***TO-DO
+
+Regardless of what you wrote above, the variable `price` will be the response variable going forward. 
+
+Use `ggplot` to look at the univariate distributions of *all* predictors. Make sure you handle categorical predictors differently from continuous predictors.
+
+```{r}
+#TO-DO
+```
+
+Use `ggplot` to look at the bivariate distributions of the response versus *all* predictors. Make sure you handle categorical predictors differently from continuous predictors. This time employ a for loop when an logic that handles the predictor type.
+
+```{r}
+#TO-DO
+```
+
+Does depth appear to be mostly independent of price?
+
+**TO-DO
+
+Look at depth vs price by predictors cut (using faceting) and color (via different colors).
+
+```{r}
+#TO-DO
+```
+
+
+Does diamond color appear to be independent of diamond depth?
+
+**TO-DO
+
+Does diamond cut appear to be independent of diamond depth?
+
+**TO-DO
+
+Do these plots allow you to assess well if diamond cut is independent of diamond price? Yes / no
+
+**TO-DO
+
+We never discussed in class bivariate plotting if both variables were categorical. Use the geometry "jitter" to visualize color vs clarity. visualize price using different colors. Use a small sized dot.
+
+```{r}
+#TO-DO
+```
+
+Does diamond clarity appear to be mostly independent of diamond color?
+
+**TO-DO
+
+2. Use `lm` to run a least squares linear regression using depth to explain price. 
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? What was the standard error of price originally? 
+
+
+```{r}
+#TO-DO
+```
+
+Are these metrics expected given the appropriate or relevant visualization(s) above?
+
+**TO-DO
+
+Use `lm` to run a least squares linear regression using carat to explain price. 
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? What was the standard error of price originally? 
+
+```{r}
+#TO-DO
+```
+
+Are these metrics expected given the appropriate or relevant visualization(s) above?
+
+**TO-DO
+
+3. Use `lm` to run a least squares anova model using color to explain price. 
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? What was the standard error of price originally? 
+
+```{r}
+#TO-DO
+```
+
+Are these metrics expected given the appropriate or relevant visualization(s) above?
+
+**TO-DO
+
+Our model only included one feature - why are there more than two estimates in $b$?
+
+**TO-DO
+
+Verify that the least squares linear model fit gives the sample averages of each price given color combination. Make sure to factor in the intercept here.
+
+```{r}
+#TO-DO
+```
+
+Fit a new model without the intercept and verify the sample averages of each colors' prices *directly* from the entries of vector $b$.
+
+```{r}
+#TO-DO
+```
+
+What would extrapolation look like in this model? We never covered this in class explicitly.
+
+**TO-DO
+
+4. Use `lm` to run a least squares linear regression using all available features to explain diamond price. 
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? Also - provide an approximate 95% interval for predictions using the empirical rule. 
+
+```{r}
+#TO-DO
+```
+
+Interpret all entries in the vector $b$.
+
+**TO-DO
+
+Are these metrics expected given the appropriate or relevant visualization(s) above? Can you tell from the visualizations?
+
+**TO-DO
+
+Comment on why $R^2$ is high. Think theoretically about diamonds and what you know about them.
+
+**TO-DO
+
+Do you think you overfit? Comment on why or why not but do not do any numerical testing or coding.
+
+**TO-DO
+
+Create a visualization that shows the "original residuals" (i.e. the prices minus the average price) and the model residuals.
+
+```{r}
+#TO-DO
+```
+
+
+5. Reference your visualizations above. Does price vs. carat appear linear?
+
+** TO-DO
+
+Upgrade your model in #4 to use one polynomial term for carat.
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? 
+
+```{r}
+#TO-DO
+```
+
+Interpret each element in $b$ just like previously. You can copy most of the text from the previous question but be careful. There is one tricky thing to explain.
+
+**TO-DO
+
+Is this an improvement over the model in #4? Yes/no and why.
+
+**TO-DO
+
+Define a function $g$ that makes predictions given a vector of the same features in $\mathbb{D}$.
+
+```{r}
+#TO-DO
+```
+
+6. Use `lm` to run a least squares linear regression using a polynomial of color of degree 2 to explain price.  
+
+```{r}
+#TO-DO
+```
+
+Why did this throw an error?
+
+**TO-DO
+
+7. Redo the model fit in #4 without using `lm` but using the matrix algebra we learned about in class. This is hard and requires many lines, but it's all in the notes.
+
+```{r}
+#TO-DO
+```
+
+What is $b$, $R^2$ and the RMSE? 
+
+```{r}
+#TO-DO
+```
+
+Are they the same as in #4?
+
+**TO-DO
+
+Redo the model fit using matrix algebra by projecting onto an orthonormal basis for the predictor space $Q$ and the Gram-Schmidt "remainder" matrix $R$. Formulas are in the notes. Verify $b$ is the same.
+
+```{r}
+#TO-DO
+```
+
+Generate the vectors $\hat{y}$, $e$ and the hat matrix $H$.
+
+```{r}
+#TO-DO
+```
+
+In one line each, verify that 
+(a) $\hat{y}$ and $e$ sum to the vector $y$ (the prices in the original dataframe), 
+(b) $\hat{y}$ and $e$ are orthogonal 
+(c) $e$ projected onto the column space of $X$ gets annhilated, 
+(d) $\hat{y}$ projected onto the column space of $X$ is unaffected, 
+(e) $\hat{y}$ projected onto the orthogonal complement of the column space of $X$ is annhilated
+(f) the sum of squares residuals plus the sum of squares model equal the original (total) sum of squares
+
+```{r}
+#TO-DO
+```
+
+8. Fit a linear least squares model for price using all interactions and also 5-degree polynomials for all continuous predictors.
+
+```{r}
+#TO-DO
+```
+
+Report $R^2$, RMSE, the standard error of the residuals ($s_e$) but you do not need to report $b$.
+
+```{r}
+#TO-DO
+```
+
+Create an illustration of $y$ vs. $\hat{y}$.
+
+```{r}
+#TO-DO
+```
+
+How many diamonds have predictions that are wrong by \$1,000 or more ?
+
+```{r}
+#TO-DO
+```
+
+$R^2$ now is very high and very impressive. But is RMSE impressive? Think like someone who is actually using this model to e.g. purchase diamonds.
+
+**TO-DO
+
+What is the degrees of freedom in this model?
+
+```{r}
+#TO-DO
+```
+
+Do you think $g$ is close to $h^*$ in this model? Yes / no and why?
+
+**TO-DO
+
+Do you think $g$ is close to $f$ in this model? Yes / no and why?
+
+**TO-DO
+
+What more degrees of freedom can you add to this model to make $g$ closer to $f$?
+
+** TO-DO
+
+Even if you allowed for so much expressivity in $\mathcal{H}$ that $f$ was an element in it, there would still be error due to ignorance of relevant information that you haven't measured. What information do you think can help? This is not a data science question - you have to think like someone who sells diamonds.
+
+** TO-DO
+
+9. Validate the model in #8 by reserving 10% of $\mathbb{D}$ as test data. Report oos standard error of the residuals
+
+```{r}
+#TO-DO
+```
+
+Compare the oos standard error of the residuals to the standard error of the residuals you got in #8 (i.e. the in-sample estimate). Do you think there's overfitting?
+
+** TO-DO
+
+Extra-credit: validate the model via cross validation.
+
+```{r}
+#TO-DO if you want extra credit
+```
+
+Is this result much different than the single validation? And, again, is there overfitting in this model?
+
+** TO-DO
+
+10. The following code (from plec 14) produces a response that is the result of a linear model of one predictor and random $\epsilon$.
+
+```{r}
+rm(list = ls())
+set.seed(1003)
+n = 100
+beta_0 = 1
+beta_1 = 5
+xmin = 0
+xmax = 1
+x = runif(n, xmin, xmax)
+#best possible model
+h_star_x = beta_0 + beta_1 * x
+
+#actual data differs due to information we don't have
+epsilon = rnorm(n)
+y = h_star_x + epsilon
+```
+
+We then add fake predictors. For instance, here is the model with the addition of 2 fake predictors:
+
+```{r}
+p_fake = 2
+X = matrix(c(x, rnorm(n * p_fake)), ncol = 1 + p_fake)
+mod = lm(y ~ X)
+```
+
+Using a test set hold out, find the number of fake predictors where you can reliably say "I overfit". Some example code is below that you may want to use:
+
+```{r}
+#TO-DO
+
+mod = lm(y_train ~ X_train)
+y_hat_oos = predict(mod, X_test)
+```
 

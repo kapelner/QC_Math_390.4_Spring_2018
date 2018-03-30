@@ -85,7 +85,7 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
 
 [(exam)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/exams/midterm1/midterm1.pdf) [(exam solutions)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/exams/midterm1/midterm1_solutions.pdf)
 
-* Midterm II is Wednesday, April 18 (in class).
+* Midterm II is Monday, April 16 (in class).
 
 * Final Exam is Wednesday, May 23 1:45-3:45 (in class, KY277)
 

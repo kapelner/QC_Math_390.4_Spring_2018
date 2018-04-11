@@ -20,6 +20,9 @@ The dataset `diamonds` is in the namespace now as it was loaded with the `ggplot
 ```{r}
 ?diamonds
 str(diamonds)
+diamonds$cut = factor(as.character(diamonds$cut))
+diamonds$color = factor(as.character(diamonds$color))
+diamonds$clarity = factor(as.character(diamonds$clarity))
 ```
 
 What is $n$, $p$, what do the features mean, what is the most likely response metric and why?

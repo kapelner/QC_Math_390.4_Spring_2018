@@ -1,0 +1,74 @@
+
+```{r}
+pacman::p_load(latex2exp)
+ggplot() + xlab("Model complexity") + ylab(TeX("error ($s_e$)")) + ggtitle("In sample error and out of sample error", "by model complexity") + ylim(0, 100)
+ggsave("complexity.pdf", width = 6, height = 3)
+```
+
+
+```{r}
+ggplot() + xlab(TeX("Size of dataset $(n)$")) + ylab(TeX("error ($s_e$)")) + ggtitle("In sample error and out of sample error", "by sample size") + xlim(0, 1000) + ylim(0, 100)
+ggsave("n_increasing.pdf", width = 6, height = 3.5)
+```
+
+
+```{r}
+N = 500
+x = runif(N, 0, 31)
+y = sin(x) + rnorm(N, 0, 0.3)
+ggplot(data.frame(x = x, y = y), aes(x, y)) + geom_point(lwd=0.6) 
+ggsave("sine.pdf", width = 6, height = 3)
+```
+
+
+
+```{r}
+N = 100
+x1 = runif(N / 2, -5, 0)
+x2 = runif(N / 2, 0, 5)
+z = factor(c(rep(1, N / 2), rep(0, N / 2)))
+y1 = rnorm(N / 2, 0, 1)
+y2 = x2^2 + rnorm(N / 2, 0, 1)
+
+x = c(x1, x2)
+y = c(y1, y2)
+
+ggplot(data.frame(x = x, y = y, z = z), aes(x, y)) + 
+  geom_point(aes(shape = z), lwd = 2) + 
+  theme(legend.position="none")
+ggsave("nonlinear.pdf", width = 6, height = 3)
+```
+
+```{r}
+pacman::p_load(ggplot2)
+data(diamonds)
+diamonds$cut = factor(as.character(diamonds$cut))
+diamonds$color = factor(as.character(diamonds$color))
+diamonds$clarity = factor(as.character(diamonds$clarity))
+
+summary(diamonds)
+```
+
+
+```{r}
+ggplot(diamonds) + 
+  geom_density(aes(carat))
+ggplot(diamonds) + 
+  geom_boxplot(aes(x = cut, y = price))
+```
+
+```{r}
+head(diamonds$cut)
+mod = lm(price ~ cut, diamonds)
+coef(mod)
+summary(mod)$sigma
+head(diamonds$carat)
+```
+
+
+
+
+
+
+
+

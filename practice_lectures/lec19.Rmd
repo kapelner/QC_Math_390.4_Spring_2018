@@ -1,0 +1,72 @@
+---
+title: "Lecture 19 MATH 390.4 Queens College"
+author: "Professor Adam Kapelner"
+date: "April 23, 2018"
+---
+
+# Regression Trees
+
+First load the package:
+
+```{r}
+pacman::p_load(rpart, rpart.plot)
+```
+
+Now fit a tree on the diamonds data:
+
+```{r}
+tree_mod = rpart(price ~ ., diamonds_train, method = "anova")
+tree_mod
+```
+
+Let's illustrate the tree. 
+
+```{r}
+rpart.plot(tree_mod, digits = 4)
+```
+
+What does the in-sample fit look like?
+
+```{r}
+y_hat = predict(tree_mod, diamonds_train)
+e = diamonds_train$price - y_hat
+sd(e)
+1 - sd(e) / sd(diamonds_train$price)
+```
+
+Recall the linear model:
+
+```{r}
+summary(lm(price ~ ., diamonds_train))$r.squared
+```
+
+The tree doesn't appear to win even in-sample. Why?
+
+
+Model is super simple! Look at the leaves. They have tons of data. Why not make more leaves (with less data per leaf)?
+
+```{r}
+tree_mod = rpart(price ~ ., diamonds_train, method = "anova", control = rpart.control(cp = 0.00001, minsplit = 2))
+# rpart.plot(tree_mod, digits = 4)
+```
+
+And reassess:
+
+
+```{r}
+y_hat = predict(tree_mod, diamonds_train)
+e = diamonds_train$price - y_hat
+sd(e)
+1 - sd(e) / sd(diamonds_train$price)
+```
+
+We now beat it... at least in-sample. Turns out rpart really does not give good controls! I will use a different package next class..
+
+Note that we may have overfit.
+
+
+
+
+
+
+

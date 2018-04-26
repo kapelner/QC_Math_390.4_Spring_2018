@@ -67,7 +67,7 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
 	- Theory Notes [(Slava Takhalov)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec04takhalov.pdf) [(Darshan Patel)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec04patel.pdf) [(Ounon Kondi)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec04kondi.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec04kap.pdf)
 * Lecture 3 [(audio)](https://youtu.be/TnQGJqgFm1M) 
 
-  - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec03.Rmd) 
+  - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec03.Rmd)
 	- Theory Notes [(Slava Takhalov)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec03takhalov.pdf) [(Ounon Kondi)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec03kondi.pdf) [(Joseph Peltroche)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec03peltroche.pdf) [(Darshan Patel)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec03patel.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec03kap.pdf)
 * Lecture 2 [(audio)](https://youtu.be/5oPPucZ5VME)
   

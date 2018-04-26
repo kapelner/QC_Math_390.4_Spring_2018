@@ -29,7 +29,7 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec17kap.pdf)
 * Lecture 16 [(audio)](https://youtu.be/JmcdaArfewE)
   - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec16.Rmd) 
-	- Theory Notes [(Ounon Kondi)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec16kondi.pdf)  [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec16kap.pdf)
+  - Theory Notes [(Ounon Kondi)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec16kondi.pdf)  [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec16kap.pdf)
 * Lecture 15 [(audio)](https://youtu.be/AjTHZMqbZyk)
   - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec15.Rmd) 
 	- Theory Notes [(Slava Takhalov)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec15tachalov.pdf) [(Ounon Kondi)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec15kondi.pdf) [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec15kap.pdf)

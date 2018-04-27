@@ -504,23 +504,24 @@ c_fn = -1000
 r_tn = 0
 ```
 
-Let's return to the linear logistic model with all features. Let's calculate the overall oos reward for each possible $p_{th}$:
+Let's return to the linear logistic model with all features. Let's calculate the overall oos average reward per observation (per person) for each possible $p_{th}$:
 
 ```{r}
+n = nrow(adult_test)
 performance_metrics_oos = data.frame(performance_metrics_oos)
-performance_metrics_oos$tot_reward = 
-  r_tp * performance_metrics_oos$TP +
+performance_metrics_oos$avg_reward = 
+  (r_tp * performance_metrics_oos$TP +
   c_fp * performance_metrics_oos$FP +
   c_fn * performance_metrics_oos$FN +
-  r_tn * performance_metrics_oos$TN
+  r_tn * performance_metrics_oos$TN) / n
 ```
 
 Let's plot reward by threshold:
 
 ```{r}
 ggplot(performance_metrics_oos) +
-  geom_line(aes(x = p_th, y = tot_reward)) + 
-  ylim(0, max(performance_metrics_oos$tot_reward)) #don't show models that lose money at all
+  geom_line(aes(x = p_th, y = avg_reward)) + 
+  geom_abline(intercept = 0, col = "red")
 ```
 
 Obviously, the best decision is $p_{th} = 0$ which means you classifiy everything as a positive. This makes sense because the mailing is so cheap. The more interesting problem is where they're balanced:
@@ -531,20 +532,20 @@ c_fp = -200
 c_fn = -1000
 r_tn = 0
 performance_metrics_oos = data.frame(performance_metrics_oos)
-performance_metrics_oos$tot_reward = 
-  r_tp * performance_metrics_oos$TP +
+performance_metrics_oos$avg_reward = 
+  (r_tp * performance_metrics_oos$TP +
   c_fp * performance_metrics_oos$FP +
   c_fn * performance_metrics_oos$FN +
-  r_tn * performance_metrics_oos$TN
+  r_tn * performance_metrics_oos$TN) / n
 ggplot(performance_metrics_oos) +
-  geom_line(aes(x = p_th, y = tot_reward)) + 
-  ylim(0, max(performance_metrics_oos$tot_reward)) #don't show models that lose money at all
+  geom_line(aes(x = p_th, y = avg_reward)) + 
+  geom_abline(intercept = 0, col = "red")
 ```
 
 What are the performance characteristics of the optimal model?
 
 ```{r}
-i_star = which.max(performance_metrics_oos$tot_reward)
+i_star = which.max(performance_metrics_oos$avg_reward)
 round(as.matrix(performance_metrics_oos[i_star, ]), 2)
 ```
 
@@ -555,5 +556,143 @@ If $g_{pr}$ is closer to $f_{pr}$, what happens? All the classification models g
 Trees don't give probability estimates only $\hat{y}$'s which are 0's and 1's. There is no $p_{th}$ decision to alter. Is it possible that you can incorporate the effect of asymmetric costs / rewards into the model?
 
 Yes! And it is ingenious!
+
+First of all, let's fit a regular tree model and analyze its performance:
+
+```{r}
+options(java.parameters = "-Xmx4000m")
+# pacman::p_install_gh("kapelner/YARF", subdir = "YARFJARs", ref = "dev")
+# pacman::p_install_gh("kapelner/YARF", subdir = "YARF", ref = "dev")
+library(YARF)
+
+tree_mod = YARFCART(X_train, y_train)
+y_hats_test = predict(tree_mod, X_test)
+oos_conf_table = table(y_test, y_hats_test)
+oos_conf_table
+FDR = oos_conf_table[1, 2] / sum(oos_conf_table[, 2])
+FOR = oos_conf_table[2, 1] / sum(oos_conf_table[, 1])
+FDR
+FOR
+```
+
+Is this better than logistic regression? Let's find the model whose $p_{th}$ corresponds to this FDR rate and compare the FOR.
+
+```{r}
+i_closest = which.min(abs(performance_metrics_oos$FDR - FDR))
+performance_metrics_oos[i_closest, c("FDR", "FOR")]
+```
+
+It beats it by a little bit. This makes sense as the tree is able to fit models with interactions and non-linearities and may even have a better algorithm.
+
+Getting back to the regularly scheduled program...
+
+If we alter the `nodesize` that will change the performance characteristics. But this hyperparameter controls the complexity of the model, not the costs associated with predicting a 1 vs. a 0 (or vice versa). So let's keep `nodesize` the same. Now we only have one model with one implicit cost / reward function.
+
+So here's the genius idea:
+
+We can change the trees prediction decision by altering the training set's base rate. Right now,
+
+```{r}
+table(adult_train$income) / nrow(adult_train)
+```
+
+Since there are only about 1/4 positive cases, it is very difficult to for (1) the splits to involve lots of 0's and 1's since there not many 1's and (2) for a leaf node to have its sample mode be a 1. This is the basic idea. So let's build a new training set of the same size using the same data but over/undersampling the 1's.
+
+```{r}
+n_train = nrow(adult_train)
+adult_train_pos = adult_train[adult_train$income == ">50K", ]
+adult_train_neg = adult_train[adult_train$income == "<=50K", ]
+
+pos_sampling_rates = c(
+  seq(0.001, 0.01, by = 0.001),
+  seq(0.02, 0.8, by = 0.01),
+  seq(0.99, 0.999, by = 0.001)
+)
+```
+
+and create a storage container for the results:
+
+```{r}
+performance_metrics_tree = matrix(NA, nrow = length(pos_sampling_rates), ncol = 12)
+colnames(performance_metrics_tree) = c(
+  "pos_samp_rate", #not "p_th" anymore!
+  "TN",
+  "FP",
+  "FN",
+  "TP",
+  "miscl_err",
+  "precision",
+  "recall",
+  "FDR",
+  "FPR",
+  "FOR",
+  "miss_rate"
+)
+```
+
+
+Now let's build all these training sets and tree models on each and predict oos:
+
+```{r}
+for (i in 1 : length(pos_sampling_rates)){
+  pos_sampling_rate = pos_sampling_rates[i]
+  n_pos = round(n_train * pos_sampling_rate)
+  n_neg = n_train - n_pos
+  n_pos_indices = sample(1 : nrow(adult_train_pos), n_pos, replace = TRUE)
+  n_neg_indices = sample(1 : nrow(adult_train_neg), n_neg, replace = TRUE)
+  adult_train_i = rbind(
+    adult_train_pos[n_pos_indices, ],
+    adult_train_neg[n_neg_indices, ]
+  )
+  y_train_i = adult_train_i$income
+  X_train_i = adult_train_i
+  X_train_i$income = NULL
+  
+  cat("iteration:", i, "\n")
+  #build tree model
+  tree_mod_i = YARFCART(X_train_i, y_train_i)
+  #predict oos
+  y_hats_test_i = predict(tree_mod_i, X_test)
+  #gather and record performance metrics
+  oos_conf_table = table(
+    factor(y_test, levels = c("<=50K", ">50K")),
+    factor(y_hats_test_i, levels = c("<=50K", ">50K"))
+  )
+      
+  fp = oos_conf_table[1, 2]
+  fn = oos_conf_table[2, 1]
+  tp = oos_conf_table[2, 2]
+  tn = oos_conf_table[1, 1]
+  npp = sum(oos_conf_table[, 2])
+  npn = sum(oos_conf_table[, 1])
+  np = sum(oos_conf_table[2, ])
+  nn = sum(oos_conf_table[1, ])
+
+  performance_metrics_tree[i, ] = c(
+    pos_sampling_rate,
+    tn,
+    fp,
+    fn,
+    tp,
+    (fp + fn) / n,
+    tp / npp, #precision
+    tp / np,  #recall
+    fp / npp, #false discovery rate (FDR)
+    fp / nn,  #false positive rate (FPR)
+    fn / npn, #false omission rate (FOR)
+    fn / np   #miss rate
+  )
+}
+```
+
+Now we have all sorts of asymmetric cost models. Let's investigate versus the logistic regression:
+
+```{r}
+ggplot(data.frame(performance_metrics_oos)) +
+  geom_line(aes(x = FPR, y = recall), col = "blue") +
+  geom_abline(intercept = 0, slope = 1, col = "red") + 
+  coord_fixed() + xlim(0, 1) + ylim(0, 1) +
+  geom_line(data = data.frame(performance_metrics_tree), aes(x = FPR, y = recall), col = "green")
+```
 
 

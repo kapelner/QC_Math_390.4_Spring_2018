@@ -342,6 +342,7 @@ If $g_{pr}$ is closer to $f_{pr}$, what happens? All the threshold-derived class
 Let's try to fit a quadratic $f$ with a linear model and examine bias-variance tradeoff.
 
 ```{r}
+rm(list = ls())
 xmin = 0
 xmax = 5
 n_train = 20
@@ -357,7 +358,7 @@ all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
 for (nsim in 1 : Nsim){
   #simulate dataset $\mathbb{D}$
   x_train = runif(n_train, xmin, xmax)
-  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  delta_train = rnorm(n_train, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
   y_train = x_train^2 + delta_train
   
   #fit a model g | x's, delta's and save it
@@ -463,7 +464,7 @@ all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
 for (nsim in 1 : Nsim){
   #simulate dataset $\mathbb{D}$
   x_train = runif(n_train, xmin, xmax)
-  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  delta_train = rnorm(n_train, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
   y_train = x_train^2 + delta_train
   
   #fit a model g | x's, delta's and save it
@@ -561,7 +562,7 @@ all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
 for (nsim in 1 : Nsim){
   #simulate dataset $\mathbb{D}$
   x_train = runif(n_train, xmin, xmax)
-  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  delta_train = rnorm(n_train, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
   y_train = x_train^2 + delta_train
   
   #fit a model g | x's, delta's and save it
@@ -656,4 +657,254 @@ sigsq + expe_bias_g_sq + expe_var_g
 ```
 
 # Bias - Variance Decomposition of MSE in Regression Trees
+
+Let's return to the simulated sine curve data which we used to introduce regression trees.
+
+```{r}
+rm(list = ls())
+n_train = 100
+n_test = 500
+xmin = 0
+xmax = 10
+sigsq = 0.09
+Nsim = 100
+resolution = 1000
+```
+
+And load the tree package:
+
+```{r}
+options(java.parameters = "-Xmx4000m")
+# pacman::p_install_gh("kapelner/YARF", subdir = "YARF", ref = "dev")
+pacman::p_load(YARF)
+```
+
+Now let's generate lots of different datasets and fit many tree models:
+
+```{r}
+training_gs = list() #storing entire objects - need a hash
+all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
+
+for (nsim in 1 : Nsim){
+  #simulate dataset $\mathbb{D}$
+  x_train = runif(n_train, xmin, xmax)
+  delta_train = rnorm(n_train, 0, sqrt(sigsq))
+  y_train = sin(x_train) + delta_train
+  # ggplot(data.frame(x = x, y = y), aes(x, y)) + geom_point(lwd=0.6) 
+  
+  #fit a model g | x's, delta's and save it
+  g_model = YARFCART(data.frame(x = x_train), y_train)
+  training_gs[[nsim]] = g_model
+  
+  #generate oos dataset and save residuals on oos data
+  x_test = runif(n_test, xmin, xmax)
+  delta_test = rnorm(n_test, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
+  y_test = sin(x_test) + delta_test
+  y_hat_test = predict(g_model, data.frame(x = x_test))
+  all_residuals[nsim, ] = y_test - y_hat_test
+}
+```
+
+Let's look at the last data set to remind ourselves of the problem setting:
+
+```{r}
+ggplot(data.frame(x = x_train, y = y_train)) + geom_point(aes(x, y))
+```
+
+
+What does the storage of all the models look like?
+
+```{r}
+head(training_gs)
+```
+
+Take a look at the mse:
+
+```{r}
+mse = mean(c(all_residuals)^2)
+mse
+```
+
+Let's visualize the bias
+
+```{r}
+#generate x and the truth
+x = seq(xmin, xmax, length.out = resolution)
+f_x = sin(x)
+
+#now estimate the expectation of g by averaging all the different models
+g_avg_x = array(0, resolution)
+for (nsim in 1 : Nsim){
+  g_nsim = training_gs[[nsim]]
+  g_avg_x = g_avg_x + predict(g_nsim, data.frame(x = x))
+}
+g_avg_x = g_avg_x / Nsim #average of all models
+
+#now plot
+ggplot(data.frame(x = x, f = f_x, expe_g = g_avg_x)) + 
+  geom_line(aes(x, f), col = "darkgreen") + 
+  geom_line(aes(x, expe_g), col = "red")
+```
+
+Not much! Now actually compute the average bias squared of $g$:
+
+```{r}
+biases = f_x - g_avg_x
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+This is small - why??
+
+It's because trees are so expressive and have such model complexity that they can nail almost any true $f$ function!
+
+That means the MSE save the irreducible noise is coming from the variance. Let's look at all lines:
+
+```{r}
+plot_obj = ggplot(data.frame(x = x)) + 
+  xlim(xmin, xmax) #+ ylim(xmin^2, xmax^2)
+
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  g_nsim = training_gs[[nsim]]
+  g_x = predict(g_nsim, data.frame(x = x))
+  plot_obj = plot_obj + geom_line(data = data.frame(x = x, y = g_x), aes(x = x, y = y), col = "blue")
+}
+
+plot_obj +
+  geom_line(data = data.frame(x = x, expe_g = g_avg_x), mapping = aes(x, expe_g), col = "red", lwd = 1.5)
+```
+
+It looks awful!!!
+
+Now actually compute the average variance numerically:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+
+var_x_s = array(NA, min(Nsim, 50))
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  g_nsim = training_gs[[nsim]]
+  g_x = predict(g_nsim, data.frame(x = x))
+  var_x_s[nsim] = mean((g_x - g_avg_x)^2)
+}
+
+expe_var_g = mean(var_x_s)
+expe_var_g
+```
+
+Any more complexity than you need allows for overfitting!
+
+Now check the equivalence
+
+```{r}
+mse
+sigsq
+expe_bias_g_sq
+expe_var_g
+sigsq + expe_bias_g_sq + expe_var_g
+```
+
+# Model Averaging via Bootstrap Aggregation ("Bagging")
+
+```{r}
+rm(list = ls())
+n_train = 100
+n_test = 500
+xmin = 0
+xmax = 10
+sigsq = 0.09
+B = 250
+resolution = 1000
+```
+
+And load the tree package:
+
+```{r}
+options(java.parameters = "-Xmx4000m")
+# pacman::p_install_gh("kapelner/YARF", subdir = "YARF", ref = "dev")
+pacman::p_load(YARF)
+```
+
+Now let's generate one dataset (only ONE) 
+
+```{r}
+x_train = runif(n_train, xmin, xmax)
+delta_train = rnorm(n_train, 0, sqrt(sigsq))
+y_train = sin(x_train) + delta_train
+ggplot(data.frame(x = x_train, y = y_train)) + geom_point(aes(x, y))
+```
+
+Spend a moment to appreciate that this is all we're going to have. There is a lot of irreducible noise that is going to prevent us from finding the sine curve.
+
+Now we create many bootstrap samples to create similiar but different datasets and fit many tree models:
+
+```{r}
+bootstrapped_gs = list() #storing entire objects - need a hash
+
+for (b in 1 : B){
+  #fit a model g | x's, delta's and save it
+  bootstrap_indices_b = sample(1 : n_train, replace = TRUE)
+  g_model = YARFCART(data.frame(x = x_train[bootstrap_indices_b]), y_train[bootstrap_indices_b])
+  bootstrapped_gs[[b]] = g_model
+}
+```
+
+Now let's aggregate all models constructed with bootstrap samples together by averaging and see what it looks like relative to real $f$:
+
+```{r}
+#generate x and the truth
+x = seq(xmin, xmax, length.out = resolution)
+f_x = sin(x)
+
+#create the bagged model predictions
+g_bagged = array(0, resolution)
+for (b in 1 : B){
+  g_b = bootstrapped_gs[[b]]
+  g_bagged = g_bagged + predict(g_b, data.frame(x = x))
+}
+g_bagged = g_bagged / B #average of all models
+
+#now plot
+ggplot(data.frame(x = x, f = f_x, g_bagged = g_bagged)) + 
+  geom_line(aes(x, f), col = "darkgreen") + 
+  geom_line(aes(x, g_bagged), col = "red")
+```
+  
+That's pretty good considering the plot of the raw data from above.
+
+
+
+
+
+Let's look at the bias-variance decomposition
+```{r} 
+#generate oos dataset and save residuals on oos data
+x_test = runif(n_test, xmin, xmax)
+delta_test = rnorm(n_test, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
+y_test = sin(x_test) + delta_test
+
+y_hat_test = array(0, resolution)
+for (b in 1 : B){
+  g_b = bootstrapped_gs[[b]]
+  y_hat_test = y_hat_test + predict(g_b, data.frame(x = x))
+}
+y_hat_test = y_hat_test / B #average of all models
+
+all_residuals = y_test - y_hat_test
+mse = mean(all_residuals^2)
+mse
+```
+
+Compute the average bias squared of $g$:
+
+```{r}
+biases = f_x - g_bagged
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+
+
+
+
 

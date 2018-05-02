@@ -200,13 +200,14 @@ round(tail(performance_metrics_in_sample), 3)
 Now let's plot the ROC curve
 
 ```{r}
+pacman::p_load(ggplot2)
 ggplot(data.frame(performance_metrics_in_sample)) +
   geom_line(aes(x = FPR, y = recall)) +
   geom_abline(intercept = 0, slope = 1, col = "red") + 
   coord_fixed() + xlim(0, 1) + ylim(0, 1)
 ```
 
-Now calculate the area under the curve (AUC) which is used to evaluate the probabilistic classifier (just like the Brier score) using a trapezoid area function:
+Now calculate the area under the curve (AUC) which is used to evaluate the probabilistic classifier (just like the Brier score) using a trapezoid area function. 
 
 ```{r}
 pacman::p_load(pracma)
@@ -214,6 +215,8 @@ pacman::p_load(pracma)
 ```
 
 This is not bad at all!
+
+Note that I should add $<0, 0>$ and $<1, 1>$ as points before this is done but I didn't...
 
 How do we do out of sample?
 
@@ -239,7 +242,7 @@ ggplot(data.frame(performance_metrics_in_sample)) +
 ```
 
 
-Not bad at all - only a tad worse!
+Not bad at all - only a tad worse! In the real world it's usually a lot worse. We are lucky we have 5,000 train and test.
 
 # Detection Error Tradeoff curve
 
@@ -253,7 +256,7 @@ ggplot(data.frame(performance_metrics_in_sample)) +
 
 #Using AUC to Compare Probabilistic Classification Models
 
-What would the effect be of less data?
+What would the effect be of less information on the same traing set size? Imagine we didn't know the features: occupation, education, education_num, relationship, marital_status. How would we do relative to the above? Worse!
 
 ```{r}
 logistic_mod_less_data = glm(income ~ . - occupation - education - education_num - relationship - marital_status, adult_train, family = "binomial")
@@ -266,12 +269,13 @@ ggplot(data.frame(performance_metrics_oos)) +
   geom_line(data = data.frame(performance_metrics_oos_mod_2), aes(x = FPR, y = recall), col = "green")
 ```
 
+and we can see clearly that the AUC is worse:
 
 ```{r}
 -trapz(performance_metrics_oos_mod_2[, "FPR"], performance_metrics_oos_mod_2[, "recall"])
 ```
 
-As we lose information that is related to the true causal inputs, we lose predictive ability. Same story for the entire time in this class and certainly no different in probabilistic classifiers.
+As we lose information that is related to the true causal inputs, we lose predictive ability. Same story for the entire class since error due to ignorance increases! And certainly no different in probabilistic classifiers.
 
 # Choosing a Decision Threshold Based on Asymmetric Costs and Rewards
 
@@ -298,7 +302,7 @@ performance_metrics_oos$avg_reward =
   r_tn * performance_metrics_oos$TN) / n
 ```
 
-Let's plot reward by threshold:
+Let's plot average reward (reward per person) by threshold:
 
 ```{r}
 ggplot(performance_metrics_oos) +
@@ -306,7 +310,7 @@ ggplot(performance_metrics_oos) +
   geom_abline(intercept = 0, col = "red")
 ```
 
-Obviously, the best decision is $p_{th} = 0$ which means you classifiy everything as a positive. This makes sense because the mailing is so cheap. The more interesting problem is where they're balanced:
+Obviously, the best decision is $p_{th} = 0$ which means you classifiy everything as a positive. This makes sense because the mailing is so cheap. The more interesting problem is where the cost of advertising is higher:
 
 ```{r}
 r_tp = 1000 - 200
@@ -331,4 +335,325 @@ i_star = which.max(performance_metrics_oos$avg_reward)
 round(as.matrix(performance_metrics_oos[i_star, ]), 2)
 ```
 
-If $g_{pr}$ is closer to $f_{pr}$, what happens? All the classification models get better and you are guaranteed to make more money since you have a better discriminating eye.
+If $g_{pr}$ is closer to $f_{pr}$, what happens? All the threshold-derived classification models get better and you are guaranteed to make more money since you have a better discriminating eye.
+
+# Bias-Variance Decomposition of Mean Squared Error
+
+Let's try to fit a quadratic $f$ with a linear model and examine bias-variance tradeoff.
+
+```{r}
+xmin = 0
+xmax = 5
+n_train = 20
+n_test = 1000
+sigsq = 1
+resolution = 10000
+
+Nsim = 1000
+
+training_gs = matrix(NA, nrow = Nsim, ncol = 2)
+all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
+
+for (nsim in 1 : Nsim){
+  #simulate dataset $\mathbb{D}$
+  x_train = runif(n_train, xmin, xmax)
+  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_train = x_train^2 + delta_train
+  
+  #fit a model g | x's, delta's and save it
+  g_model = lm(y_train ~ ., data.frame(x = x_train))
+  training_gs[nsim, ] = coef(g_model)
+  
+  #generate oos dataset and save residuals on oos data
+  x_test = runif(n_test, xmin, xmax)
+  delta_test = rnorm(n_test, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_test = x_test^2 + delta_test
+  y_hat_test = predict(g_model, data.frame(x = x_test))
+  all_residuals[nsim, ] = y_test - y_hat_test
+}
+```
+
+Graph the last one:
+
+```{r}
+ggplot(data.frame(x = x_train, y = y_train)) + geom_point(aes(x, y))
+```
+
+
+Take a look at the mse:
+
+```{r}
+mse = mean(c(all_residuals)^2)
+mse
+```
+
+This should be irreducible error plus bias-squared plus variance.
+
+Let's visualize the bias
+
+```{r}
+g_average = colMeans(training_gs)
+f = function(x){x^2}
+x = seq(xmin, xmax, length.out = resolution)
+ggplot(data.frame(x = x, f = f(x)), aes(x, f)) + 
+  geom_line(col = "darkgreen") + 
+  geom_abline(intercept = g_average[1], slope = g_average[2], col = "red")
+```
+
+What is the average bias of $g$?
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+g_avg_x = g_average[1] + g_average[2] * x
+f_x = x^2
+biases = f_x - g_avg_x
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+What is the variance? Let's look at all lines:
+
+```{r}
+plot_obj = ggplot() + 
+  xlim(xmin, xmax) + ylim(xmin^2, xmax^2)
+
+for (nsim in 1 : min(Nsim, 100)){ #otherwise takes too long
+  plot_obj = plot_obj + geom_abline(intercept = training_gs[nsim, 1], slope = training_gs[nsim, 2], col = "blue")
+}
+
+plot_obj +
+  geom_abline(intercept = g_average[1], slope = g_average[2], col = "red", lwd = 2)
+```
+
+Now calculate this average variance:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+
+expe_g_x = g_average[1] + g_average[2] * x
+
+var_x_s = array(NA, Nsim)
+for (nsim in 1 : Nsim){
+  g_x = training_gs[nsim, 1] + training_gs[nsim, 2] * x
+  var_x_s[nsim] = mean((g_x - expe_g_x)^2)
+}
+
+expe_var_g = mean(var_x_s)
+expe_var_g
+```
+
+Now check the equivalence
+
+```{r}
+mse
+sigsq
+expe_bias_g_sq
+expe_var_g
+sigsq + expe_bias_g_sq + expe_var_g
+```
+
+This is not exactly equal due to numerical error.
+
+Let's try the whole thing again using a quadratic regression!
+
+```{r}
+training_gs = matrix(NA, nrow = Nsim, ncol = 3)
+all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
+
+for (nsim in 1 : Nsim){
+  #simulate dataset $\mathbb{D}$
+  x_train = runif(n_train, xmin, xmax)
+  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_train = x_train^2 + delta_train
+  
+  #fit a model g | x's, delta's and save it
+  g_model = lm(y_train ~ poly(x, 2, raw = TRUE), data.frame(x = x_train))
+  training_gs[nsim, ] = coef(g_model)
+  
+  #generate oos dataset and save residuals on oos data
+  x_test = runif(n_test, xmin, xmax)
+  delta_test = rnorm(n_test, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_test = x_test^2 + delta_test
+  y_hat_test = predict(g_model, data.frame(x = x_test))
+  all_residuals[nsim, ] = y_test - y_hat_test
+}
+```
+
+Take a look at the mse:
+
+```{r}
+mse = mean(c(all_residuals)^2)
+mse
+```
+
+Much lower! Why? Bias went down. 
+
+Let's visualize the bias
+
+```{r}
+g_average = colMeans(training_gs)
+f = function(x){x^2}
+x = seq(xmin, xmax, length.out = resolution)
+ggplot(data.frame(x = x, f = f(x)), aes(x, f)) + 
+  geom_line(col = "darkgreen") + 
+  stat_function(fun = function(x){g_average[1] + g_average[2] * x + g_average[3] * x^2}, col = "red")
+```
+
+Not much! What is the average bias of $g$?
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+g_avg_x = g_average[1] + g_average[2] * x + g_average[3] * x^2
+f_x = x^2
+biases = f_x - g_avg_x
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+What is the variance? Let's look at all lines:
+
+```{r}
+plot_obj = ggplot(data.frame(x = x)) + 
+  xlim(xmin, xmax) + ylim(xmin^2, xmax^2)
+
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  plot_obj = plot_obj + geom_line(data = data.frame(x = x, y = training_gs[nsim, 1] + training_gs[nsim, 2] * x + training_gs[nsim, 3] * x^2), mapping = aes(x, y), col = "blue")
+}
+
+plot_obj +
+  stat_function(fun = function(x){g_average[1] + g_average[2] * x + g_average[3] * x^2}, col = "red", lwd = 2)
+```
+
+Now calculate this average variance:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+
+expe_g_x = g_average[1] + g_average[2] * x + g_average[3] * x^2
+
+var_x_s = array(NA, Nsim)
+for (nsim in 1 : Nsim){
+  g_x = training_gs[nsim, 1] + training_gs[nsim, 2] * x + training_gs[nsim, 3] * x^2
+  var_x_s[nsim] = mean((g_x - expe_g_x)^2)
+}
+
+expe_var_g = mean(var_x_s)
+expe_var_g
+```
+
+Now check the equivalence
+
+```{r}
+mse
+sigsq
+expe_bias_g_sq
+expe_var_g
+sigsq + expe_bias_g_sq + expe_var_g
+```
+
+
+Try it again with quintic polynomials!
+
+```{r}
+training_gs = matrix(NA, nrow = Nsim, ncol = 6)
+all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
+
+for (nsim in 1 : Nsim){
+  #simulate dataset $\mathbb{D}$
+  x_train = runif(n_train, xmin, xmax)
+  delta_train = rnorm(n_train, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_train = x_train^2 + delta_train
+  
+  #fit a model g | x's, delta's and save it
+  g_model = lm(y_train ~ poly(x, 5, raw = TRUE), data.frame(x = x_train))
+  training_gs[nsim, ] = coef(g_model)
+  
+  #generate oos dataset and save residuals on oos data
+  x_test = runif(n_test, xmin, xmax)
+  delta_test = rnorm(n_test, 0, sigsq) #mean zero, variance sigsq always (not dependent on value of x)
+  y_test = x_test^2 + delta_test
+  y_hat_test = predict(g_model, data.frame(x = x_test))
+  all_residuals[nsim, ] = y_test - y_hat_test
+}
+```
+
+Take a look at the mse:
+
+```{r}
+mse = mean(c(all_residuals)^2)
+mse
+```
+
+Much higher! Why? Variance went up!
+
+Let's visualize the bias
+
+```{r}
+g_average = colMeans(training_gs)
+f = function(x){x^2}
+x = seq(xmin, xmax, length.out = resolution)
+ggplot(data.frame(x = x, f = f(x)), aes(x, f)) + 
+  geom_line(col = "darkgreen") + 
+  stat_function(fun = function(x){g_average[1] + g_average[2] * x + g_average[3] * x^2 + g_average[4] * x^3 + g_average[5] * x^4 + g_average[6] * x^5}, col = "red")
+```
+
+Not much! Now acutllay compute the average bias squared of $g$:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+g_avg_x = g_average[1] + g_average[2] * x + g_average[3] * x^2 + g_average[4] * x^3 + g_average[5] * x^4 + g_average[6] * x^5
+f_x = x^2
+biases = f_x - g_avg_x
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+This appears to have increased over last time ... but it's only because we're not running the regression infinite times. Remember this "expectation" is only an average.
+
+What is the variance? Let's look at all lines:
+
+```{r}
+plot_obj = ggplot(data.frame(x = x)) + 
+  xlim(xmin, xmax) + ylim(xmin^2, xmax^2)
+
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  plot_obj = plot_obj + geom_line(data = data.frame(x = x, y = training_gs[nsim, 1] + training_gs[nsim, 2] * x + training_gs[nsim, 3] * x^2 + training_gs[nsim, 4] * x^3 + training_gs[nsim, 5] * x^4 + training_gs[nsim, 6] * x^5), mapping = aes(x, y), col = "blue")
+}
+
+plot_obj +
+  stat_function(fun = function(x){g_average[1] + g_average[2] * x + g_average[3] * x^2 + g_average[4] * x^3 + g_average[5] * x^4 + g_average[6] * x^5}, col = "red", lwd = 2)
+```
+
+It looks awful!!!
+
+Now actually compute the average variance numerically:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+
+expe_g_x = g_average[1] + g_average[2] * x + g_average[3] * x^2 + g_average[4] * x^3 + g_average[5] * x^4 + g_average[6] * x^5
+
+var_x_s = array(NA, Nsim)
+for (nsim in 1 : Nsim){
+  g_x = training_gs[nsim, 1] + training_gs[nsim, 2] * x + training_gs[nsim, 3] * x^2 + training_gs[nsim, 4] * x^3 + training_gs[nsim, 5] * x^4 + training_gs[nsim, 6] * x^5
+  var_x_s[nsim] = mean((g_x - expe_g_x)^2)
+}
+
+expe_var_g = mean(var_x_s)
+expe_var_g
+```
+
+Any more complexity than you need allows for overfitting!
+
+Now check the equivalence
+
+```{r}
+mse
+sigsq
+expe_bias_g_sq
+expe_var_g
+sigsq + expe_bias_g_sq + expe_var_g
+```
+
+# Bias - Variance Decomposition of MSE in Regression Trees
+

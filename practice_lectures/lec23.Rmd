@@ -346,7 +346,7 @@ options(java.parameters = "-Xmx4000m")
 pacman::p_load(YARF)
 ```
 
-Now let's generate lots of different datasets and fit many tree models:
+Now let's generate lots of different datasets and fit many tree models. Note there's a new argument `calculate_oob_error = FALSE`. This is here for speed only. Ignore this for now as we will go over what this means later in detail.
 
 ```{r}
 training_gs = list() #storing entire objects - need a hash
@@ -360,7 +360,7 @@ for (nsim in 1 : Nsim){
   # ggplot(data.frame(x = x, y = y), aes(x, y)) + geom_point(lwd=0.6) 
   
   #fit a model g | x's, delta's and save it
-  g_model = YARFCART(data.frame(x = x_train), y_train)
+  g_model = YARFCART(data.frame(x = x_train), y_train, calculate_oob_error = FALSE)
   training_gs[[nsim]] = g_model
   
   #generate oos dataset and save residuals on oos data
@@ -511,7 +511,7 @@ bootstrapped_gs = list() #storing entire objects - need a hash
 for (b in 1 : B){
   #fit a model g | x's, delta's and save it
   bootstrap_indices_b = sample(1 : n_train, replace = TRUE)
-  g_model = YARFCART(data.frame(x = x_train[bootstrap_indices_b]), y_train[bootstrap_indices_b])
+  g_model = YARFCART(data.frame(x = x_train[bootstrap_indices_b]), y_train[bootstrap_indices_b], calculate_oob_error = FALSE)
   bootstrapped_gs[[b]] = g_model
 }
 ```
@@ -539,15 +539,219 @@ ggplot(data.frame(x = x, f = f_x, g_bagged = g_bagged)) +
   
 That's pretty good considering the plot of the raw data from above.
 
-We could generate many datasets and do the bias-variance decomposition and what you'll find is the bias will be low (like in the case of one tree) but the variance will be much curtailed. That's because we're using an average. Thus, MSE will decrease.
+Now let's see if this is truly better than one tree. The way to do this is generate lots of datasets and try to estimate mse (with bias and variance).
+
+To do this, we employ a convenience method called `YARFBAG`. We first define a number of trees in the "bag":
+
+```{r}
+num_trees = 250
+```
+
+And then we run the same simulation as we did above with one tree.
+
+```{r}
+Nsim = 100
+training_gs = list() #storing entire objects - need a hash
+all_residuals = matrix(NA, nrow = Nsim, ncol = n_test)
+
+for (nsim in 1 : Nsim){
+  #simulate dataset $\mathbb{D}$
+  x_train = runif(n_train, xmin, xmax)
+  delta_train = rnorm(n_train, 0, sqrt(sigsq))
+  y_train = sin(x_train) + delta_train
+  # ggplot(data.frame(x = x, y = y), aes(x, y)) + geom_point(lwd=0.6) 
+  
+  #fit a model g | x's, delta's and save it
+  g_model = YARFBAG(data.frame(x = x_train), y_train, num_trees = num_trees, calculate_oob_error = FALSE)
+  training_gs[[nsim]] = g_model
+  
+  #generate oos dataset and save residuals on oos data
+  x_test = runif(n_test, xmin, xmax)
+  delta_test = rnorm(n_test, 0, sqrt(sigsq)) #mean zero, variance sigsq always (not dependent on value of x)
+  y_test = sin(x_test) + delta_test
+  y_hat_test = predict(g_model, data.frame(x = x_test))
+  all_residuals[nsim, ] = y_test - y_hat_test
+}
+```
+
+Let's look at the last data set to remind ourselves of the problem setting:
+
+```{r}
+ggplot(data.frame(x = x_train, y = y_train)) + geom_point(aes(x, y))
+```
+
+
+What does the storage of all the models look like?
+
+```{r}
+head(training_gs)
+```
+
+Take a look at the mse:
+
+```{r}
+mse = mean(c(all_residuals)^2)
+mse
+```
+
+Let's visualize the bias
+
+```{r}
+#generate x and the truth
+x = seq(xmin, xmax, length.out = resolution)
+f_x = sin(x)
+
+#now estimate the expectation of g by averaging all the different models
+g_avg_x = array(0, resolution)
+for (nsim in 1 : Nsim){
+  g_nsim = training_gs[[nsim]]
+  g_avg_x = g_avg_x + predict(g_nsim, data.frame(x = x))
+}
+g_avg_x = g_avg_x / Nsim #average of all models
+
+#now plot
+ggplot(data.frame(x = x, f = f_x, expe_g = g_avg_x)) + 
+  geom_line(aes(x, f), col = "darkgreen") + 
+  geom_line(aes(x, expe_g), col = "red")
+```
+
+Not much! If anything it should be *better* than the bias of a single tree!
+
+Now actually compute the average bias squared of $g$:
+
+```{r}
+biases = f_x - g_avg_x
+expe_bias_g_sq = mean(biases^2)
+expe_bias_g_sq
+```
+
+Almost zilch.
+
+Now... variance?
+
+```{r}
+plot_obj = ggplot(data.frame(x = x)) + 
+  xlim(xmin, xmax) #+ ylim(xmin^2, xmax^2)
+
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  g_nsim = training_gs[[nsim]]
+  g_x = predict(g_nsim, data.frame(x = x))
+  plot_obj = plot_obj + geom_line(data = data.frame(x = x, y = g_x), aes(x = x, y = y), col = "blue")
+}
+
+plot_obj +
+  geom_line(data = data.frame(x = x, expe_g = g_avg_x), mapping = aes(x, expe_g), col = "red", lwd = 1.5)
+```
+
+There is variance, but less than previously when only one tree was used.
+
+Now actually compute the average variance numerically:
+
+```{r}
+x = seq(xmin, xmax, length.out = resolution)
+
+var_x_s = array(NA, min(Nsim, 50))
+for (nsim in 1 : min(Nsim, 50)){ #otherwise takes too long
+  g_nsim = training_gs[[nsim]]
+  g_x = predict(g_nsim, data.frame(x = x))
+  var_x_s[nsim] = mean((g_x - g_avg_x)^2)
+}
+
+expe_var_g = mean(var_x_s)
+expe_var_g
+```
+
+Any more complexity than you need allows for overfitting!
+
+Now check the equivalence
+
+```{r}
+mse
+sigsq
+expe_bias_g_sq
+expe_var_g
+sigsq + expe_bias_g_sq + expe_var_g
+```
 
 We have a better algorithm!
 
-But can it get better?
+# Validation in Bagging?
+
+We are using the "bootstrap" to get the trees. Can we do model validation in the same step? 
+
+The answer is yes. For every tree, there was a bootstrap sample of the training set used to build the tree. But there are observations in $\mathbb{D}$ that are not in the bootstrap sample! About 2/3 on average are left out i.e. "out of bag (oob)". Over many trees, there are different oob subsets than become the full data set. So you actually have validation in a way on the whole dataset kind of like K-fold cross validation. Supposedly this validation is similar to K=2 in terms of performance. It is what everyone seems to use. 
+
+Let's look at one bagged tree model:
+
+```{r}
+bagged_tree_mod = YARFBAG(data.frame(x = x_train), y_train, num_trees = 250, calculate_oob_error = TRUE) #TRUE is the default
+bagged_tree_mod
+```
+
+How did this work? Let's look at the oob sets:
+
+```{r}
+bagged_tree_mod$bootstrap_indices[[1]]
+setdiff(1 : n_train, bagged_tree_mod$bootstrap_indices[[1]])
+setdiff(1 : n_train, bagged_tree_mod$bootstrap_indices[[2]])
+```
+
+It took predictions on each tree on the oob set, averaged by observation across trees and then averaged across observation averages.
+
 
 # Random Forests
 
 
+What do we have now? We have model selection is done within training. And training and validation are done in a single step! No more costly K-fold CV with 3 splits!
+
+But can it get any better? YES. As you saw, the variance terms can be shrunk further the more decorrelated the trees become. We do this now by introducing randomness into the splits by choosing only a subset of the features to split on randomly. The trees are then grown as normal. Then the we model average many trees via bagging. And that's random forests!
+
+Quick demo qith the boston housing data and oob validation:
+
+```{r}
+rm(list = ls())
+boston = MASS::Boston
+y = boston$medv
+X = boston
+X$medv = NULL
+
+YARFBAG(X, y, num_trees = 1000)
+YARF(X, y, num_trees = 1000)
+```
+
+```{r}
+num_trees = 200
+
+diamonds_train = diamonds[sample(1 : nrow(diamonds), 500), ]
+y_train = diamonds_train$price
+X_train = diamonds_train
+X$price = NULL
+
+mod_bag = YARFBAG(X_train, y_train, num_trees = num_trees, calculate_oob_error = FALSE)
+mod_rf = YARF(X_train, y_train, num_trees = 2000, calculate_oob_error = FALSE)
+
+diamonds_test = diamonds[sample(1 : nrow(diamonds), 500), ]
+y_test = diamonds_test$price
+X_test = diamonds_test
+X_test$price = NULL
+
+sum((y_test = predict(mod_bag, X_test))^2)
+sum((y_test = predict(mod_rf, X_test))^2)
+```
+
+```{r}
+num_trees = 500
+n_max_per_tree = 500
+
+y_train = diamonds$price
+X_train = diamonds
+X$price = NULL
+
+mod_bag = YARFBAG(X_train, y_train, num_trees = num_trees, n_max_per_tree = n_max_per_tree)
+mod_rf = YARF(X_train, y_train, num_trees = num_trees, n_max_per_tree = n_max_per_tree)
+mod_bag
+mod_rf
+```
 
 
 

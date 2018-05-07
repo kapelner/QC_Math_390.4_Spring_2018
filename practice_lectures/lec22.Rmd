@@ -1,5 +1,5 @@
 ---
-title: "Lecture 21 MATH 390.4 Queens College"
+title: "Lecture 22 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
 date: "May 2, 2018"
 ---

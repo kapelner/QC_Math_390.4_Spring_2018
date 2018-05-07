@@ -1,5 +1,5 @@
 ---
-title: "Lecture 21 MATH 390.4 Queens College"
+title: "Lecture 23 MATH 390.4 Queens College"
 author: "Professor Adam Kapelner"
 date: "May 2, 2018"
 ---
@@ -480,7 +480,7 @@ n_test = 500
 xmin = 0
 xmax = 10
 sigsq = 0.09
-B = 250
+T = 250
 resolution = 1000
 ```
 
@@ -508,11 +508,11 @@ Now we create many bootstrap samples to create similiar but different datasets a
 ```{r}
 bootstrapped_gs = list() #storing entire objects - need a hash
 
-for (b in 1 : B){
+for (t in 1 : T){
   #fit a model g | x's, delta's and save it
-  bootstrap_indices_b = sample(1 : n_train, replace = TRUE)
-  g_model = YARFCART(data.frame(x = x_train[bootstrap_indices_b]), y_train[bootstrap_indices_b], calculate_oob_error = FALSE)
-  bootstrapped_gs[[b]] = g_model
+  bootstrap_indices_t = sample(1 : n_train, replace = TRUE)
+  g_model = YARFCART(data.frame(x = x_train[bootstrap_indices_t]), y_train[bootstrap_indices_t], calculate_oob_error = FALSE)
+  bootstrapped_gs[[t]] = g_model
 }
 ```
 
@@ -525,11 +525,11 @@ f_x = sin(x)
 
 #create the bagged model predictions
 g_bagged = array(0, resolution)
-for (b in 1 : B){
-  g_b = bootstrapped_gs[[b]]
-  g_bagged = g_bagged + predict(g_b, data.frame(x = x))
+for (t in 1 : T){
+  g_t = bootstrapped_gs[[t]]
+  g_bagged = g_bagged + predict(g_t, data.frame(x = x))
 }
-g_bagged = g_bagged / B #average of all models
+g_bagged = g_bagged / T #average of all models
 
 #now plot
 ggplot(data.frame(x = x, f = f_x, g_bagged = g_bagged)) + 
@@ -544,7 +544,7 @@ Now let's see if this is truly better than one tree. The way to do this is gener
 To do this, we employ a convenience method called `YARFBAG`. We first define a number of trees in the "bag":
 
 ```{r}
-num_trees = 250
+num_trees = 250 #previously called "T"
 ```
 
 And then we run the same simulation as we did above with one tree.
@@ -684,7 +684,7 @@ The answer is yes. For every tree, there was a bootstrap sample of the training 
 Let's look at one bagged tree model:
 
 ```{r}
-bagged_tree_mod = YARFBAG(data.frame(x = x_train), y_train, num_trees = 250, calculate_oob_error = TRUE) #TRUE is the default
+bagged_tree_mod = YARFBAG(data.frame(x = x_train), y_train, num_trees = 250, calculate_oob_error = TRUE) #TRUE is the default! Why? It's something you want to know!
 bagged_tree_mod
 ```
 
@@ -706,7 +706,7 @@ What do we have now? We have model selection is done within training. And traini
 
 But can it get any better? YES. As you saw, the variance terms can be shrunk further the more decorrelated the trees become. We do this now by introducing randomness into the splits by choosing only a subset of the features to split on randomly. The trees are then grown as normal. Then the we model average many trees via bagging. And that's random forests!
 
-Quick demo qith the boston housing data and oob validation:
+Quick demo with the boston housing data and oob validation:
 
 ```{r}
 rm(list = ls())
@@ -715,45 +715,93 @@ y = boston$medv
 X = boston
 X$medv = NULL
 
-YARFBAG(X, y, num_trees = 1000)
-YARF(X, y, num_trees = 1000)
+mod_bag = YARFBAG(X, y, num_trees = 500)
+mod_bag
+mod_rf = YARF(X, y, num_trees = 500)
+mod_rf
 ```
 
-```{r}
-num_trees = 200
+Gain in decorrelation?
 
-diamonds_train = diamonds[sample(1 : nrow(diamonds), 500), ]
+```{r}
+cat("gain: ", (mod_rf$pseudo_rsq_oob - mod_bag$pseudo_rsq_oob) / mod_bag$pseudo_rsq_oob * 100, "%\n")
+```
+
+For this example, not much. How about on the diamonds dataset?
+
+```{r}
+num_trees = 500
+n_train = 500
+
+training_indices = sample(1 : nrow(diamonds), n_train)
+diamonds_train = diamonds[training_indices, ]
 y_train = diamonds_train$price
 X_train = diamonds_train
-X$price = NULL
+X_train$price = NULL
 
 mod_bag = YARFBAG(X_train, y_train, num_trees = num_trees, calculate_oob_error = FALSE)
-mod_rf = YARF(X_train, y_train, num_trees = 2000, calculate_oob_error = FALSE)
+mod_rf = YARF(X_train, y_train, num_trees = num_trees, calculate_oob_error = FALSE)
 
-diamonds_test = diamonds[sample(1 : nrow(diamonds), 500), ]
+test_indices = setdiff(1 : nrow(diamonds), training_indices)
+diamonds_test = diamonds[test_indices, ]
 y_test = diamonds_test$price
 X_test = diamonds_test
 X_test$price = NULL
 
-sum((y_test = predict(mod_bag, X_test))^2)
-sum((y_test = predict(mod_rf, X_test))^2)
+mse_bag = sum((y_test = predict(mod_bag, X_test))^2) / nrow(X_test)
+mse_rf = sum((y_test = predict(mod_rf, X_test))^2) / nrow(X_test)
+cat("gain: ", (mse_bag - mse_rf) / mse_bag * 100, "%\n")
 ```
+
+Also, not much, but real.
+
+How about on classification? Let's build the models on the `adult` dataset:
 
 ```{r}
+pacman::p_load_gh("coatless/ucidata")
+data(adult)
+adult = na.omit(adult) #kill any observations with missingness
+
 num_trees = 500
-n_max_per_tree = 500
+n_train = 500
 
-y_train = diamonds$price
-X_train = diamonds
-X$price = NULL
+training_indices = sample(1 : nrow(adult), n_train)
+adult_train = adult[training_indices, ]
+y_train = adult_train$income
+X_train = adult_train
+X_train$income = NULL
 
-mod_bag = YARFBAG(X_train, y_train, num_trees = num_trees, n_max_per_tree = n_max_per_tree)
-mod_rf = YARF(X_train, y_train, num_trees = num_trees, n_max_per_tree = n_max_per_tree)
-mod_bag
-mod_rf
+mod_bag = YARFBAG(X_train, y_train, num_trees = num_trees, calculate_oob_error = FALSE)
+mod_rf = YARF(X_train, y_train, num_trees = num_trees, calculate_oob_error = FALSE)
 ```
 
+And test:
 
+```{r}
+test_indices = sample(setdiff(1 : nrow(adult), training_indices), 25000)
+adult_test = adult[test_indices, ]
+y_test = adult_test$income
+X_test = adult_test
+X_test$income = NULL
+
+y_hat_test_bag = predict(mod_bag, X_test)
+y_hat_test_rf = predict(mod_rf, X_test)
+
+oos_conf_table_bag = table(y_test, y_hat_test_bag)
+oos_conf_table_rf = table(y_test, y_hat_test_rf)
+oos_conf_table_bag
+oos_conf_table_rf
+miscl_err_bag = mean(y_test != y_hat_test_bag)
+miscl_err_rf = mean(y_test != y_hat_test_rf)
+miscl_err_bag
+miscl_err_rf
+
+cat("gain: ", (miscl_err_bag - miscl_err_rf) / miscl_err_bag * 100, "%\n")
+```
+
+Beats it nicely! It seems the decorrelation gain is higher for classifiation. I'm not sure why. 
+
+However ... there seems to be a tradeoff of FP vs FN going on. This brings up a whole new question - can we use tree methods to perform asymmetric cost classification! Yes... but we don't have time to get into this now...
 
 
 

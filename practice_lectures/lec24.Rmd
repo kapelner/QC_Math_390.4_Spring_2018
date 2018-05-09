@@ -16,6 +16,9 @@ pacman::p_load(YARF, ggplot2)
 library(YARF)
 diamonds_sample = diamonds[sample(1 : nrow(diamonds), 2000), ]
 boston = MASS::Boston
+cancer = MASS::biopsy
+cancer$ID = NULL
+cancer = na.omit(cancer)
 pacman::p_load_gh("coatless/ucidata")
 data(adult)
 adult = na.omit(adult) #kill any observations with missingness
@@ -96,47 +99,6 @@ summary(mod_lin)$r.squared
 ```
 
 Not a whole lot of room to improve! That extra 8% of unexplained variance is split between bias and irreducible error due to unknown information. But it did the best it can. It is likely what's remaining is due to information we are not privy to.
-
-Let's see a classification example, the adult data. the linear model comparison will be logistic regression with the default hard classification threshold of $p_{th} = 0.5$.
-
-```{r}
-n_train = 500
-
-training_indices = sample(1 : nrow(adult), n_train)
-adult_train = adult[training_indices, ]
-y_train = adult_train$income
-X_train = adult_train
-X_train$income = NULL
-
-test_indices = sample(setdiff(1 : nrow(adult), training_indices), 3000)
-adult_test = adult[test_indices, ]
-y_test = adult_test$income
-X_test = adult_test
-X_test$income = NULL
-
-mod_lin = glm(y_train ~ ., X_train, family = "binomial")
-y_hat_test_lin = predict(mod_lin, X_test, type = "class")
-s_e_lin = sd(y_test - y_hat_test_lin)
-s_e_lin
-
-mod_bag = YARFBAG(X_train, y_train, calculate_oob_error = FALSE)
-y_hat_test_bag = predict(mod_bag, X_test)
-s_e_bag = sd(y_test - y_hat_test_bag)
-s_e_bag
-
-cat("oos standard error reduction:", (1 - s_e_bag / s_e_lin) * 100, "%\n")
-
-oos_conf_table_bag = table(y_test, y_hat_test_bag)
-oos_conf_table_rf = table(y_test, y_hat_test_rf)
-oos_conf_table_bag
-oos_conf_table_rf
-miscl_err_bag = mean(y_test != y_hat_test_bag)
-miscl_err_rf = mean(y_test != y_hat_test_rf)
-miscl_err_bag
-miscl_err_rf
-
-cat("gain: ", (miscl_err_bag - miscl_err_rf) / miscl_err_bag * 100, "%\n")
-```
 
 
 # Validation in Bagging?
@@ -284,6 +246,49 @@ cat("gain: ", (miscl_err_bag - miscl_err_rf) / miscl_err_bag * 100, "%\n")
 Beats it nicely! It seems the decorrelation gain is higher for classification.
 
 However ... there seems to be a tradeoff of FP vs FN going on. This brings up a whole new question - can we use tree methods to perform asymmetric cost classification! Yes... but we don't have time to get into this now...
+
+# Correlation does not Imply Causation
+
+Take a look at the following real data:
+
+```{r}
+spurious = data.frame(
+  yearly_divorce_rate_maine_per_1000 = c(5,4.7,4.6,4.4,4.3,4.1,4.2,4.2,4.2,4.1),
+  yearly_US_consumption_margarine_per_capita = c(8.2,7,6.5,5.3,5.2,4,4.6,4.5,4.2,3.7)
+)
+
+ggplot(spurious, aes(x = yearly_divorce_rate_maine_per_1000, y = yearly_US_consumption_margarine_per_capita)) +
+  geom_point() + geom_smooth()
+```
+
+How did this happen? 
+
+Well, we can imagine doing the same thing.
+
+
+```{r}
+y = spurious$yearly_US_consumption_margarine_per_capita
+n = length(y)
+
+r = 10000
+best_abs_corr = 0
+best_random_xs = NULL
+for (i in 1 : r){
+  x = rnorm(n)
+  
+  random_abs_corr = abs(cor(x, y))
+  if (random_abs_corr > best_abs_corr){
+    best_abs_corr = random_abs_corr
+    best_random_xs = x
+  }
+}
+spurious$best_random_xs = best_random_xs
+ggplot(spurious, aes(x = best_random_xs, y = yearly_US_consumption_margarine_per_capita)) +
+  geom_point() + geom_smooth() + ggtitle(paste("Spurious Correlation has |r| = ", round(best_abs_corr, 3)))
+```
+
+So what's the narrative here? If you look through a gajillion random features that have no causal connection with the phenomenon $y$, you will eventually find something that "clicks". However, this will be vanish if you keep collecting data. Anything that is built upon falsehood will crumble!
+
 
 
 

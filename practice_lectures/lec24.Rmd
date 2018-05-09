@@ -290,5 +290,61 @@ ggplot(spurious, aes(x = best_random_xs, y = yearly_US_consumption_margarine_per
 So what's the narrative here? If you look through a gajillion random features that have no causal connection with the phenomenon $y$, you will eventually find something that "clicks". However, this will be vanish if you keep collecting data. Anything that is built upon falsehood will crumble!
 
 
+When does correlation really not imply causation? From class, we spoke about the phenomenon $y$ = "num car accidents" with observed feature "x" = "num umbrellas sold" but common cause $z$ = "rain amount". It is clear the umbrella sales has *no causal* relationship with car accidents. But they *are correlated* because they are linked by a common cause. Here's the data example that makes this clear.
+
+The data generating process as specified by the causal diagram looks as follows:
+
+```{r}
+rm(list = ls())
+set.seed(1)
+n = 300
+sigma = 0.3
+
+umbrella_example_data = data.frame(
+  z_rainfall = runif(n, 0, 6) #here's the common cause - rainfall
+)
+umbrella_example_data$x_umbrella_sales = umbrella_example_data$z_rainfall^2 + rnorm(n, sigma) #x is a variable that is driven by z with noise
+umbrella_example_data$y_car_accidents = umbrella_example_data$z_rainfall + rnorm(n, sigma) #y is a variable driven by z with noise
+```
+
+So we only see $x$ and $y$. Here's what it appears as:
+
+```{r}
+ggplot(umbrella_example_data) +
+  aes(x = x_umbrella_sales, y = y_car_accidents) +
+  geom_point() + 
+  geom_smooth()
+```
+
+and the model looks like:
+
+```{r}
+mod = lm(y_car_accidents ~ x_umbrella_sales, umbrella_example_data)
+round(coef(mod), 3)
+```
+
+So what's the interpretation of the coefficient for $x$? ...
+
+What you can't say is that $x$ is a causal contributor to $y$! You may want to say it, but you can't!
+
+Now let's build a model of $y$ linear in both $x$ and $z$. What happens?
+
+```{r}
+mod = lm(y_car_accidents ~ x_umbrella_sales + z_rainfall, umbrella_example_data)
+round(coef(mod), 3)
+```
+
+The effect of $x$ is gone!! Why? If you keep $z$ constant, the sole true causal factor in $y$, manipulating $x$ won't matter anymore!
+
+Okay - but the effect of $x$ is small. Can we prove it's not significantly different from zero?
+
+# Statistical Inference in Linear Models
+
+We understand a lot about linear models
+* How they predict
+* How to measure predictive performance
+* How to interpret the weights
+
+But we don't have any idea about 
 
 

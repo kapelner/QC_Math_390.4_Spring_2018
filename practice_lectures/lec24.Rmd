@@ -12,7 +12,7 @@ First we'll load the packages and data:
 rm(list = ls())
 options(java.parameters = "-Xmx8000m")
 # pacman::p_install_gh("kapelner/YARF", subdir = "YARF", ref = "dev")
-pacman::p_load(YARF, ggplot2)
+# pacman::p_load(YARF, ggplot2)
 library(YARF)
 diamonds_sample = diamonds[sample(1 : nrow(diamonds), 2000), ]
 boston = MASS::Boston
@@ -105,7 +105,7 @@ Not a whole lot of room to improve! That extra 8% of unexplained variance is spl
 
 We are using the "bootstrap" to get the trees. Can we do model validation in the same step? 
 
-The answer is yes. For every tree, there was a bootstrap sample of the training set used to build the tree. But there are observations in $\mathbb{D}$ that are not in the bootstrap sample! About 2/3 on average are left out i.e. "out of bag (oob)". Over many trees, there are different oob subsets than become the full data set. So you actually have validation in a way on the whole dataset kind of like K-fold cross validation. Supposedly this validation is similar to K=2 in terms of performance. It is what everyone seems to use. 
+The answer is yes. For every tree, there was a bootstrap sample of the training set used to build the tree. But there are observations in $\mathbb{D}$ that are not in the bootstrap sample! About 1/3 on average are left out i.e. "out of bag (oob)". Over many trees, there are different oob subsets than become the full data set. So you actually have validation in a way on the whole dataset kind of like K-fold cross validation. Supposedly this validation is similar to K=2 in terms of performance. It is what everyone seems to use. 
 
 Let's load the data and packages from last class and plot the data:
 
@@ -126,7 +126,7 @@ ggplot(data.frame(x = x_train, y = y_train)) + geom_point(aes(x, y))
 Let's look at one bagged tree model and compute OOB errors after construction:
 
 ```{r}
-bagged_tree_mod = YARFBAG(data.frame(x = x_train), y_train, num_trees = num_trees, calculate_oob_error = TRUE) #TRUE is the default! Why? It's something you want to know!
+bagged_tree_mod = YARFBAG(data.frame(x = x_train), y_train, num_trees = num_trees) #TRUE is the default! Why? It's something you want to know!
 bagged_tree_mod
 ```
 
@@ -134,9 +134,9 @@ How did this work? Let's look at the oob sets:
 
 ```{r}
 cat("bootstrap indices:")
-bagged_tree_mod$bootstrap_indices[[1]]
+sort(bagged_tree_mod$bootstrap_indices[[1]])
 cat("oob:")
-setdiff(1 : n_train, bagged_tree_mod$bootstrap_indices[[1]])
+sort(setdiff(1 : n_train, bagged_tree_mod$bootstrap_indices[[1]]))
 cat("bootstrap indices:")
 bagged_tree_mod$bootstrap_indices[[2]]
 cat("oob:")
@@ -270,7 +270,7 @@ Well, we can imagine doing the same thing.
 y = spurious$yearly_US_consumption_margarine_per_capita
 n = length(y)
 
-r = 10000
+r = 100000
 best_abs_corr = 0
 best_random_xs = NULL
 for (i in 1 : r){
@@ -288,63 +288,4 @@ ggplot(spurious, aes(x = best_random_xs, y = yearly_US_consumption_margarine_per
 ```
 
 So what's the narrative here? If you look through a gajillion random features that have no causal connection with the phenomenon $y$, you will eventually find something that "clicks". However, this will be vanish if you keep collecting data. Anything that is built upon falsehood will crumble!
-
-
-When does correlation really not imply causation? From class, we spoke about the phenomenon $y$ = "num car accidents" with observed feature "x" = "num umbrellas sold" but common cause $z$ = "rain amount". It is clear the umbrella sales has *no causal* relationship with car accidents. But they *are correlated* because they are linked by a common cause. Here's the data example that makes this clear.
-
-The data generating process as specified by the causal diagram looks as follows:
-
-```{r}
-rm(list = ls())
-set.seed(1)
-n = 300
-sigma = 0.3
-
-umbrella_example_data = data.frame(
-  z_rainfall = runif(n, 0, 6) #here's the common cause - rainfall
-)
-umbrella_example_data$x_umbrella_sales = umbrella_example_data$z_rainfall^2 + rnorm(n, sigma) #x is a variable that is driven by z with noise
-umbrella_example_data$y_car_accidents = umbrella_example_data$z_rainfall + rnorm(n, sigma) #y is a variable driven by z with noise
-```
-
-So we only see $x$ and $y$. Here's what it appears as:
-
-```{r}
-ggplot(umbrella_example_data) +
-  aes(x = x_umbrella_sales, y = y_car_accidents) +
-  geom_point() + 
-  geom_smooth()
-```
-
-and the model looks like:
-
-```{r}
-mod = lm(y_car_accidents ~ x_umbrella_sales, umbrella_example_data)
-round(coef(mod), 3)
-```
-
-So what's the interpretation of the coefficient for $x$? ...
-
-What you can't say is that $x$ is a causal contributor to $y$! You may want to say it, but you can't!
-
-Now let's build a model of $y$ linear in both $x$ and $z$. What happens?
-
-```{r}
-mod = lm(y_car_accidents ~ x_umbrella_sales + z_rainfall, umbrella_example_data)
-round(coef(mod), 3)
-```
-
-The effect of $x$ is gone!! Why? If you keep $z$ constant, the sole true causal factor in $y$, manipulating $x$ won't matter anymore!
-
-Okay - but the effect of $x$ is small. Can we prove it's not significantly different from zero?
-
-# Statistical Inference in Linear Models
-
-We understand a lot about linear models
-* How they predict
-* How to measure predictive performance
-* How to interpret the weights
-
-But we don't have any idea about 
-
 

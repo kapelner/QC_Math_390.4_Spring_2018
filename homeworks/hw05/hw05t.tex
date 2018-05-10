@@ -42,7 +42,210 @@ NAME: \line(1,0){380}
 \clearpage
 }
 
+
+\problem{These are questions about Finlay's book, chapters ...  For all parts in this question, answer using notation from class (i.e. $t ,f, g, h^*, \delta, \epsilon, e, t, z_1, \ldots, z_t, \mathbb{D}, \mathcal{H}, \mathcal{A}, \mathcal{X}, \mathcal{Y}, X, y, n, p, x_{\cdot 1}, \ldots, x_{\cdot p}$, $x_{1 \cdot}, \ldots, x_{n \cdot}$,  $f_{pr}, h^*_{pr}, g_{pr}, p_{th}$, and terminology about correlation and causation. }
+
+\begin{enumerate}
+
+\easysubproblem{...}\spc{1}
+
+\end{enumerate}
+
+
+\problem{This question is about probability estimation. We limit our discussion to estimating one event.}
+
+
+\begin{enumerate}
+
+\easysubproblem{What is the difference between the regression framework and the probability estimation framework?}\spc{6}
+
+\easysubproblem{Is probability estimation more similar to regression or classification and why?}\spc{3}
+
+\hardsubproblem{Why was it necessary to think of the response $Y$ as a random variable and why in particular the Bernoulli random variable?}\spc{3}
+
+\hardsubproblem{If we use the Bernoulli r.v. for $Y$, are there any error terms (i.e. $\delta, \epsilon, e$) anymore? Yes/no.}\spc{0}
+
+\easysubproblem{What is the difference between $f$ in the regression framework and $f_{pr}$ in the probabilistic classification framework?}\spc{6}
+
+\hardsubproblem{Is there a $t_{pr}$? If so, what does it look like?}\spc{3}
+
+
+\easysubproblem{Write out the likelihood as a function of $f_{pr}$, the $\x_i$'s and the $y_i$'s.}\spc{3}
+
+\hardsubproblem{What assumption did you have to make and what would happen if you didn't make this assumption?}\spc{3}
+
+
+\easysubproblem{Is $f_{pr}$ knowable? Yes/no.}\spc{0}
+
+\end{enumerate}
+
+
+\problem{This question continues the discussion of probability estimation for one event via the logistic regression approach.}
+
+
+\begin{enumerate}
+
+\intermediatesubproblem{As before, if we are to get anywhere at all, we need to approximate the true function $f_{pr}$ with a function in a hypothesis set, $\mathcal{H}_{pr}$. Let us examine the range of all elements in $\mathcal{H}_{pr}$. What values can these functions return and why?}\spc{4}
+
+\hardsubproblem{We would also feel warm and fuzzy inside if the elements of $\mathcal{H}_{pr}$ contained the term $\w \cdot \x$.  Why do we want our functions to contain this linear component?}\spc{4}
+
+\easysubproblem{The problem is $\w \cdot \x \in \reals$ but in (a) there is a special range of allowable functions. We need a way to transform $\w \cdot \x$ into the range from (a). What is this function called?}\spc{0}
+
+
+\easysubproblem{Give some examples of such functions.}\spc{2}
+
+
+\easysubproblem{We will choose the logistic function. Write the likelihood again from 2(g) but replace $f_{pr}$ with the element from $\mathcal{H}_{pr}$ that uses the logistic function.}\spc{2}
+
+
+\hardsubproblem{Simplify your answer from (e) so that you arrive at:
+
+\beqn
+\sum_{i=1}^n \natlog{1 + e^{(1 - 2y_i) \w \cdot \x_i}}
+\eeqn}~\spc{10}
+
+
+\extracreditsubproblem{We will now maximize this likelihood w.r.t to $\w$ to find $\b$, the best fitting solution which will be used within $g_{pr}$ i.e.
+
+\beqn
+\b = \argmax_{\w \in \reals^{p+1}}\braces{\sum_{i=1}^n \natlog{1 + e^{(1 - 2y_i) \w \cdot \x_i}}}
+\eeqn
+
+to do so, we should find the derivative and set it equal to zero i.e.
+
+\beqn
+\derivop{\w}{\sum_{i=1}^n \natlog{1 + e^{(1 - 2y_i) \w \cdot \x_i}}} ~\buildrel \text{set} \over =~ 0
+\eeqn
+
+Try to find the derivate and solve. Get as far as you can.
+
+}~\spc{10}
+
+\easysubproblem{If you attempted the last problem, you found that there is no closed form solution. What type of methods are used to approximate $\b$? Note: once you use such methods and arrive at a $\b$, that is called \qu{running a logistic regression}. }\spc{1}
+
+\easysubproblem{In class we used the notation $\phat = g_{pr}$. Why?}\spc{1}
+
+\easysubproblem{Write down $\phat$ as a function of $\b$ and $\x$.}\spc{2}
+
+\intermediatesubproblem{What is the interpration of the linear component $\b \cdot \x$?}\spc{4}
+
+\hardsubproblem{Using your answer to (k) and what we learned about causality in lectures 24 and 25, what is the proper interpretation of the $j$th component of $\b$ i.e. $b_j$?}\spc{4}
+
+\hardsubproblem{How does one go about \textit{validating} a logistic regression model? What is the fundamental problem with doing so that you didn't have to face with regression or classification? Discuss.}\spc{4}
+
+\end{enumerate}
+
+
+\problem{This question is about probabilistic classification i.e. using probability estimation to classify. We limit our discussion to binary classification.}
+
+
+\begin{enumerate}
+
+\easysubproblem{How do you use a probability estimation model to classify. Provide the formula which provides $\hat{y}(\phat)$ i.e. the estimate of whether the event of interest occurs as a function of the probability estimate of the event occuring. Use the \qu{default} rule.}\spc{1}
+
+\easysubproblem{In the formula from (a), there is an option to be made, write the formula again below with this option denoted $p_{th}$.}\spc{1}
+
+\intermediatesubproblem{What happens when $p_{th}$ is low and what happens when $p_{th}$ is high? What is the tradeoff being made?}\spc{4}
+
+\hardsubproblem{Below is the first 20 rows of in-sample prediction results from a logistic regression whose reponse is $>50K$ (the positive class) or $\leq 50K$ (the negative class). You have the $\phat_i$'s and the $y_i$'s. Create a performance table that includes the four numbers in the confusion table as well as FPR and recall. Leave some room for one additional column we will compute later in the question. The rows in the table should be indexed by $p_{th} \in \braces{0, 0.2, \ldots, 0.8, 1}$ which you should use as the first column. Hint: you may want to sort by $\phat$ and convert $y$ to binary before you begin.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{ll}
+  \hline
+$\phat$ & $y$ \\ 
+  \hline
+0.35 & $>$50K \\ 
+  0.49 & $>$50K \\ 
+  0.73 & $>$50K \\ 
+  0.91 & $>$50K \\ 
+  0.01 & $<$=50K \\ 
+  0.59 & $>$50K \\ 
+  0.08 & $<$=50K \\ 
+  0.07 & $<$=50K \\ 
+  0.01 & $<$=50K \\ 
+  0.76 & $>$50K \\ 
+  0.32 & $<$=50K \\ 
+  0.07 & $>$50K \\ 
+  0.01 & $<$=50K \\ 
+  0.00 & $<$=50K \\ 
+  0.35 & $>$50K \\ 
+  0.69 & $>$50K \\ 
+  0.38 & $<$=50K \\ 
+  0.07 & $<$=50K \\ 
+  0.02 & $<$=50K \\ 
+  0.00 & $<$=50K \\ 
+   \hline
+\end{tabular}
+\end{table}
+}~\spc{4}
+
+
+\intermediatesubproblem{Using the performance table from (d), trace out an approximate ROC curve.}\spc{6}
+
+\intermediatesubproblem{Using the performance table from (d), trace out an approximate DET curve.}\spc{6}
+
+\intermediatesubproblem{Consider the $c_{FP} = \$5$ and $c_{FN} = \$1,000$. Find the probabilistic classifier model that minimizes cost among the $p_{th}$ values you considered in your performance table in (d) and write it explicitly below.}\spc{6}
+
+\end{enumerate}
+
+
+\problem{These are questions related to bias-variance decomposition, bagging and random forests. }
+
+\begin{enumerate}
+
+\easysubproblem{...}\spc{1}
+
+\end{enumerate}
+
+\problem{These are questions related to correlation, causation and the interpretation of coefficients in linear models / logistic regression. }
+
+\begin{enumerate}
+
+\easysubproblem{...}\spc{1}
+
+\end{enumerate}
+
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \problem{These are questions about Silver's book, chapters ...  For all parts in this question, answer using notation from class (i.e. $t ,f, g, h^*, \delta, \epsilon, e, t, z_1, \ldots, z_t, \mathbb{D}, \mathcal{H}, \mathcal{A}, \mathcal{X}, \mathcal{Y}, X, y, n, p, x_{\cdot 1}, \ldots, x_{\cdot p}$, $x_{1 \cdot}, \ldots, x_{n \cdot}$, etc. and also we now have $f_{pr}, h^*_{pr}, g_{pr}, p_{th}$, etc from probabilistic classification as well as different types of validation schemes). }
 

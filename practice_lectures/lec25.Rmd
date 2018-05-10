@@ -26,10 +26,11 @@ umbrella_example_data$y_car_accidents = umbrella_example_data$z_rainfall + rnorm
 So we only see $x$ and $y$. Here's what it appears as:
 
 ```{r}
+pacman::p_load(ggplot2)
 ggplot(umbrella_example_data) +
   aes(x = x_umbrella_sales, y = y_car_accidents) +
   geom_point() + 
-  geom_smooth()
+  geom_smooth(method = "lm")
 ```
 
 and the model looks like:
@@ -52,6 +53,24 @@ round(coef(mod), 3)
 
 The effect of $x$ is gone!! Why? If you keep $z$ constant, the sole true causal factor in $y$, manipulating $x$ won't matter anymore!
 
+Why is this? Well, you can look at how x affects y in local areas of z for instance.
+
+```{r}
+b = 0.6; a = 0.5
+z_small_indices = umbrella_example_data$z_rainfall < 
+  quantile(umbrella_example_data$z_rainfall, b) &
+  umbrella_example_data$z_rainfall >
+  quantile(umbrella_example_data$z_rainfall, a)
+
+ggplot(umbrella_example_data[z_small_indices, ]) +
+  aes(x = x_umbrella_sales, y = y_car_accidents) +
+  geom_point()
+```
+
+If you force the common cause (lurking variable) to be an approximate constant, then you won't see any affect of x on y.
+
+------ The end of material you will be responsible for on the final --------
+
 Okay - but the effect of $x$ is small. Can we prove it's not significantly different from zero?
 
 # Statistical Inference in Linear Models
@@ -66,4 +85,146 @@ But we don't have any idea about how to do inference for the weight coefficients
 * interval construction
 * testing
 
+These are the subjects taught in a tradional linear regression class. At QC this is ECON 382 and ECON 387 (econometrics I/II).
+
+Let's look at the boston housing data. Let's look at the variable `rm`:
+
+```{r}
+rm(list = ls())
+boston = MASS::Boston
+ggplot(boston, aes(x = rm, y = medv)) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+Clearly an association which can be approximated well by a linear correlation. Let's fit a linear model and look at the coefficients.
+
+```{r}
+lm_mod = lm(medv ~ rm, boston)
+coef(lm_mod)
+```
+
+Up until this point in the class, this is all we would see. But there is much more now that we made the four linear regression assumptions:
+
+```{r}
+summary(lm_mod)
+```
+
+Look at the 2x4 table above. The first column are coefficients from Act I of the drama. 
+
+The second column are new characters; they are the standard errors calculated via:
+
+```{r}
+X = cbind(
+  rep(1, nrow(boston)),
+  boston$rm
+)
+rmse = summary(lm_mod)$sigma
+
+var_X = rmse^2 * solve(t(X) %*% X)
+var_X
+sigsq_bjs = diag(var_X)
+sigma_bjs = sqrt(sigsq_bjs)
+sigma_bjs
+```
+
+Once we have the standard errors, then the third column and fourth column are the results of the test of $H_j: \beta_j = 0$. The third column is the t statistics:
+
+```{r}
+ts = coef(lm_mod) / sigma_bjs
+ts
+```
+
+And the last column are the 2-sided p values as calculated from the integrals of the PDFs of Student's T distribution.
+
+```{r}
+2 * (1 - pt(abs(ts[1]), nrow(boston) - (1 + 1)))
+2 * (1 - pt(abs(ts[2]), nrow(boston) - (1 + 1)))
+```
+
+They are too small for the computer to store! Meaning - there is definitely an intercept and definitely a slop for `rm`. The "***" say they are significant to less than 1 in a 1000 level.
+
+```{r}
+summary(lm_mod)
+```
+
+Now look below the table. We also see $R^2$ which we know and love from Act I of the drama. We will ignore $R^2$-adjusted as it is an attempt to adjust $R^2$ for overfitting. It is generally not used much anymore.
+
+We also see a new character: the "F-statistic" or the "omnibus / global F stat". It is measuring if there is *any* signal whatsover. well, since there was signal in `rm` there is signal in the model. So the $t$ and $F$ tell the same story. The p-value is assigned to the global F.
+
+We can calculate the F below:
+
+```{r}
+SST = sum((boston$medv - mean(boston$medv))^2)
+SSE = sum(lm_mod$residuals^2)
+SSR = SST - SSE
+
+F_stat = (SSR / (1 + 1 - 1)) / (SSE / (nrow(boston) - (1 + 1)))
+F_stat
+```
+
+And the p value:
+
+```{r}
+1 - pf(F_stat, 1 + 1 - 1, nrow(boston) - (1 + 1))
+```
+
+
+What about predictive intervals?
+
+Let's say there are 5 rooms in the house and we want to predict and obtain an approximate 95% confidence interval for this prediction:
+
+```{r}
+x_star = 5
+y_hat_star = 5 * coef(lm_mod)[2]
+y_hat_star
+c(y_hat_star - 2 * rmse, y_hat_star + 2 * rmse)
+```
+
+We can imagine looking at all variables:
+
+```{r}
+lm_mod = lm(medv ~ ., boston)
+summary(lm_mod)
+```
+
+This is running the test $H_0: \beta_j = 0$ using each of the $b_j$ coefficients. Remember the $b_j$ coefficents are the effect of the unit change in $x_j$ while all other $x$'s remain constant!
+
+Learning this stuff well takes a whole semester. Mastering it... that may take decades...
+
+
+# Statistical Inference in Logistic Regression
+
+The theory is *completely* different but output and interpretations are quite magically the same as the linear regression model.
+
+```{r}
+biopsy = MASS::biopsy
+biopsy$ID = NULL
+biopsy = na.omit(biopsy)
+colnames(biopsy) = c( #should've done this awhile ago!!!
+  "clump_thickness",
+  "cell_size_uniformity",
+  "cell_shape_uniformity",
+  "marginal_adhesion",
+  "epithelial_cell_size",
+  "bare_nuclei",
+  "bland_chromatin",
+  "normal_nucleoli",
+  "mitoses",
+  "class"
+)
+log_mod = glm(class ~ ., biopsy, family = "binomial")
+summary(log_mod)
+```
+
+The tests run here are still $H_0: \beta_j = 0$ which means $x_j$ does not have a linear effect on the logodds of malignancy controlled for other variables or more colloquially that $x_j$ does not affect the probability of malignancy controlled for other variables.
+
+# Statistical Inference for Trees and Random Forests
+
+Active area of research right now! The basic problem is the parameters aren't fixed! They grow and mutate with the data itself. Makes the parameters hard to pin down and inference on them difficult. Ditto for prediction intervals.
+
+
+# Linear Models vs. Machine Learning
+
+Linear models are highly interpretable. Why? You know what the $b_j$'s mean now!! And, they provide inference (if you buy the assumptions). However, they are weak on interpretation. How much does `rm` affect `medv` in a random forest? This is a very active area of research.
 

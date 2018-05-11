@@ -12,7 +12,7 @@
 \author{Professor Adam Kapelner} %STUDENTS: write your name here
 
 \iftoggle{professormode}{
-\date{Due 11:59PM Monday, May 14, 2018 under the door of KY604 \\ \vspace{0.5cm} \small (this document last updated \today ~at \currenttime)}
+\date{Due 11:59PM Friday, May 18, 2018 under the door of KY604 \\ \vspace{0.5cm} \small (this document last updated \today ~at \currenttime)}
 }
 
 \renewcommand{\abstractname}{Instructions and Philosophy}
@@ -24,7 +24,7 @@
 \begin{abstract}
 The path to success in this class is to do many problems. Unlike other courses, exclusively doing reading(s) will not help. Coming to lecture is akin to watching workout videos; thinking about and solving problems on your own is the actual ``working out.''  Feel free to \qu{work out} with others; \textbf{I want you to work on this in groups.}
 
-Reading is still \textit{required}. For this homework set, read about all the concepts introduced in class online e.g. probabilistic classification, the logistic link function, performance characteristics of binary classification, asymmetric cost / reward classifiers. This is your responsibility to supplement in-class with your own readings. %Also, read ch 3--6 in Silver.
+Reading is still \textit{required}. For this homework set, read about all the concepts introduced in class online e.g. probabilistic classification, the logistic link function, performance characteristics of binary classification, asymmetric cost / reward classifiers, bias-variance decomposition, bagged models, RandomForests$^\circledR$, correlation, causation, lurking variables and graphical depictions of causal models. It is your responsibility to supplement the notes with your own readings. Also, read the introduction in Finlay.
 
 The problems below are color coded: \ingreen{green} problems are considered \textit{easy} and marked \qu{[easy]}; \inorange{yellow} problems are considered \textit{intermediate} and marked \qu{[harder]}, \inred{red} problems are considered \textit{difficult} and marked \qu{[difficult]} and \inpurple{purple} problems are extra credit. The \textit{easy} problems are intended to be ``giveaways'' if you went to class. Do as much as you can of the others; I expect you to at least attempt the \textit{difficult} problems. 
 
@@ -43,16 +43,24 @@ NAME: \line(1,0){380}
 }
 
 
-\problem{These are questions about Finlay's book, chapters ...  For all parts in this question, answer using notation from class (i.e. $t ,f, g, h^*, \delta, \epsilon, e, t, z_1, \ldots, z_t, \mathbb{D}, \mathcal{H}, \mathcal{A}, \mathcal{X}, \mathcal{Y}, X, y, n, p, x_{\cdot 1}, \ldots, x_{\cdot p}$, $x_{1 \cdot}, \ldots, x_{n \cdot}$,  $f_{pr}, h^*_{pr}, g_{pr}, p_{th}$, and terminology about correlation and causation. }
+\problem{These are questions about the Finlay's introduction to his book.}
 
 \begin{enumerate}
 
-\easysubproblem{...}\spc{1}
+\easysubproblem{Finlay introduces predictive analytics by using the case study of what supervised learning problem? Explain.}\spc{4}
+
+\hardsubproblem{What does a credit score of 700 mean? Use figure 1.2 on page 5 when answering this question.}\spc{3}
+
+\hardsubproblem{How much more likely is someone to default if that have 9 or more credit cards than someone with 4-8 credit cards?}\spc{3}
+
+
+\easysubproblem{Summarize Finlay's conception of \qu{big data}.}\spc{8}
+
 
 \end{enumerate}
 
 
-\problem{This question is about probability estimation. We limit our discussion to estimating one event.}
+\problem{This question is about probability estimation. We limit our discussion to estimating the probability that a single event occurs.}
 
 
 \begin{enumerate}
@@ -87,7 +95,7 @@ NAME: \line(1,0){380}
 
 \intermediatesubproblem{As before, if we are to get anywhere at all, we need to approximate the true function $f_{pr}$ with a function in a hypothesis set, $\mathcal{H}_{pr}$. Let us examine the range of all elements in $\mathcal{H}_{pr}$. What values can these functions return and why?}\spc{4}
 
-\hardsubproblem{We would also feel warm and fuzzy inside if the elements of $\mathcal{H}_{pr}$ contained the term $\w \cdot \x$.  Why do we want our functions to contain this linear component?}\spc{4}
+\hardsubproblem{We would also feel warm and fuzzy inside if the elements of $\mathcal{H}_{pr}$ contained the term $\w \cdot \x$.  What is the main reason we would like our prediction functions to contain this linear component?}\spc{1}
 
 \easysubproblem{The problem is $\w \cdot \x \in \reals$ but in (a) there is a special range of allowable functions. We need a way to transform $\w \cdot \x$ into the range from (a). What is this function called?}\spc{0}
 
@@ -117,9 +125,7 @@ to do so, we should find the derivative and set it equal to zero i.e.
 \derivop{\w}{\sum_{i=1}^n \natlog{1 + e^{(1 - 2y_i) \w \cdot \x_i}}} ~\buildrel \text{set} \over =~ 0
 \eeqn
 
-Try to find the derivate and solve. Get as far as you can.
-
-}~\spc{10}
+Try to find the derivate and solve. Get as far as you can. Do so on a separate page}\spc{0}
 
 \easysubproblem{If you attempted the last problem, you found that there is no closed form solution. What type of methods are used to approximate $\b$? Note: once you use such methods and arrive at a $\b$, that is called \qu{running a logistic regression}. }\spc{1}
 
@@ -127,9 +133,7 @@ Try to find the derivate and solve. Get as far as you can.
 
 \easysubproblem{Write down $\phat$ as a function of $\b$ and $\x$.}\spc{2}
 
-\intermediatesubproblem{What is the interpration of the linear component $\b \cdot \x$?}\spc{4}
-
-\hardsubproblem{Using your answer to (k) and what we learned about causality in lectures 24 and 25, what is the proper interpretation of the $j$th component of $\b$ i.e. $b_j$?}\spc{4}
+\intermediatesubproblem{What is the interpration of the linear component $\b \cdot \x$? What does it mean for $\phat$? No need to give the full, careful interpretation.}\spc{4}
 
 \hardsubproblem{How does one go about \textit{validating} a logistic regression model? What is the fundamental problem with doing so that you didn't have to face with regression or classification? Discuss.}\spc{4}
 
@@ -150,8 +154,8 @@ Try to find the derivate and solve. Get as far as you can.
 \hardsubproblem{Below is the first 20 rows of in-sample prediction results from a logistic regression whose reponse is $>50K$ (the positive class) or $\leq 50K$ (the negative class). You have the $\phat_i$'s and the $y_i$'s. Create a performance table that includes the four numbers in the confusion table as well as FPR and recall. Leave some room for one additional column we will compute later in the question. The rows in the table should be indexed by $p_{th} \in \braces{0, 0.2, \ldots, 0.8, 1}$ which you should use as the first column. Hint: you may want to sort by $\phat$ and convert $y$ to binary before you begin.
 
 \begin{table}[ht]
-\centering
-\begin{tabular}{ll}
+\footnotesize
+\hspace{2cm}\begin{tabular}{ll}
   \hline
 $\phat$ & $y$ \\ 
   \hline
@@ -178,14 +182,14 @@ $\phat$ & $y$ \\
    \hline
 \end{tabular}
 \end{table}
-}~\spc{4}
+}~\spc{20}
 
 
 \intermediatesubproblem{Using the performance table from (d), trace out an approximate ROC curve.}\spc{6}
 
 \intermediatesubproblem{Using the performance table from (d), trace out an approximate DET curve.}\spc{6}
 
-\intermediatesubproblem{Consider the $c_{FP} = \$5$ and $c_{FN} = \$1,000$. Find the probabilistic classifier model that minimizes cost among the $p_{th}$ values you considered in your performance table in (d) and write it explicitly below.}\spc{6}
+\easysubproblem{Consider the $c_{FP} = \$5$ and $c_{FN} = \$1,000$. Explain how you would find the probabilistic classifier model that minimizes cost among the $p_{th}$ values you considered in your performance table in (d) but do not do any computations.}\spc{6}
 
 \end{enumerate}
 
@@ -194,7 +198,41 @@ $\phat$ & $y$ \\
 
 \begin{enumerate}
 
-\easysubproblem{...}\spc{1}
+\easysubproblem{List the assumptions for the bias-variance decomposition.}\spc{3}
+
+
+\intermediatesubproblem{Why is $f(\x)$ called the \qu{conditional expectation function}?}\spc{3}
+
+
+\easysubproblem{Provide an expression for the bias-variance decomposition formula for the average MSE over the distribution $\prob{\X}$ for $y = g + (f-g) + \delta$. You should have three terms in the expression. Make sure you explain conceptually each term in English.}\spc{3}
+
+\extracreditsubproblem{Rederive the bias-variance decomposition formula for the average MSE over the distribution $\prob{\X}$ for $y = g + (h^* - g) + (f - h^*) + \delta$. You should group the final expression into \emph{four} terms where two will be the same as the expression found in (c), one will be similar to a term found in (c) and one will be new. Make sure you explain conceptually each term in English. Do so on an additional page.}\spc{-0.5}
+
+\intermediatesubproblem{Assume a $\mathbb{D}$ where $n$ is large and $p$ is small and you fit a linear model $g$ to all features. Your in-sample $R^2$ is low. In the expression from (c), indicate term(s) are likely large, which term(s) are likely small and explain why.}\spc{6}
+
+\intermediatesubproblem{Assume a $\mathbb{D}$ where $n$ is large and $p$ is small and you fit a tree model $g$ to all features. Your in-sample $R^2$ is low. In the expression from (c), indicate term(s) are likely large, which term(s) are likely small and explain why.}\spc{6}
+
+
+\easysubproblem{Provide an expression for the bias-variance decomposition formula for the average MSE over the distribution $\prob{\X}$ for $y = g + (f-g) + \delta$ where $g$ now represents the average taken over constituent models $g_1, g_2, \ldots, g_T$. (This is known as \qu{model averaging} or \qu{ensemble learning}). You can assume that $\rho := \corr{g_{t_1}}{g_{t_2}}$ is the same for all $t_1 \neq t_2$.}\spc{4}
+
+
+\easysubproblem{If $T \rightarrow \infty$, rewrite the bias-variance decomposition you found in (k).}\spc{2}
+
+
+\easysubproblem{If $g_1, g_2, \ldots, g_T$ are built with the same data $\mathbb{D}$ and $\mathcal{A}$ is not random, then $g_1 = g_2 = \ldots = g_T$. What would $\rho$ be in this case?}\spc{3}
+
+
+\easysubproblem{Even though each of the constituent models $g_1, g_2, \ldots, g_T$ are built with the same data $\mathbb{D}$, what idea can you use to induce $\rho < 1$? This idea is called \qu{bagging} which is a whimsical portmanteau of the words \qu{bootstrap aggregation}.}\spc{4}
+
+
+\easysubproblem{Explain how examining predictions averaged on the out of bag (oob) data for each $g_1, g_2, \ldots, g_T$ can constitute model validation for the bagged model.}\spc{4}
+
+
+\easysubproblem{Explain how the Random Forests$^\circledR$  algorithm differs from the CART (classification and regression trees) algorithm.}\spc{4}
+
+\easysubproblem{Explain why the MSE for the Random Forests$^\circledR$ algorithm expected to be better than a bag of CART models.}\spc{4}
+
+\easysubproblem{List the three major advantages of Random Forests$^\circledR$ for supervised learning / machine learning.}\spc{4}
 
 \end{enumerate}
 
@@ -202,7 +240,31 @@ $\phat$ & $y$ \\
 
 \begin{enumerate}
 
-\easysubproblem{...}\spc{1}
+\easysubproblem{You are provided with the responses measured from a phenomenon of interest $y_1, \ldots, y_n$ and associated measurements $x_1, \ldots, x_n$ where $n$ is large. The sample correlation is estimated to be $r=0.74$. Is $\x$ \qu{correlated} with $\y$?}\spc{1}
+
+\intermediatesubproblem{Consider the case in (a), would $\x$ be a \qu{causal} factor for $\y$? Explain.}\spc{3}
+
+\intermediatesubproblem{Consider the case in (a) and create two plausible causal models using the graphical depiction style used in class (nodes representing variables and lines represent causal contribution where node A below node B means node A is measured before node B). Your model has to include $x$ and $y$ but is not limited to only those variables.}\spc{8}
+
+\intermediatesubproblem{Consider the case in (a) but now $n$ is small. Create a third plausible causal model (in addition to the two you created in the last problem) using the same graphical depiction style. Your model has to include $x$ and $y$ but is not limited to only those variables.}\spc{5}
+
+\easysubproblem{Explain briefly how you would prove beyond a reasonable doubt that $\x$ is not only correlated with $\y$ but that $\x$ is a causal factor of $\y$.}\spc{3}
+
+\easysubproblem{Consider $\x$ is college GPA and $\y$ is career average income. Is $\x$ correlated with $\y$? Do not lookup data online, I want you to answer conceptually using your own argument.}\spc{3}
+
+\intermediatesubproblem{Consider $\x$ is college GPA and $\y$ is career average income. Is $\x$ a causal factor of $\y$? Do not lookup data online, I want you to answer conceptually using your own argument.}\spc{3}
+
+\intermediatesubproblem{Consider $\x$ is college GPA and $\y$ is career average income. Can you think of a $\z$ which is a lurking variable? Explain the variable and why you believe it fits the description of a lurking variable.}\spc{3}
+
+
+\intermediatesubproblem{If you fit a linear model for $\y$, $g = b_0 + b_x x + b_z z$, what would the $b_x$ value be close to? Why?}\spc{3}
+
+\extracreditsubproblem{Create a causal model using the same graphical depiction style that justifies the four linear regression assumptions. Do so on a different page.}\spc{-0.6}
+
+
+\intermediatesubproblem{When running a regression of \texttt{price} on all variables in the \texttt{diamonds} dataset, the coefficient for \texttt{carat} is about \$6,500. Interpret this value as best as you can.}\spc{4}
+
+\intermediatesubproblem{When running a logistic regression of class \texttt{malignant} on all variables in the \texttt{biopsy} dataset, the coefficient for \texttt{V1} (which measures clump thickness) is about 0.54. Interpret this value as best as you can.}\spc{5}
 
 \end{enumerate}
 

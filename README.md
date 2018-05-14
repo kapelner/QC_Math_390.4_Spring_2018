@@ -6,6 +6,9 @@ This is the course homepage for Math 390.4 (and Masters level 650.3-02) for the 
 
 My lectures can be listened to as youtube tracks [(all lectures)](https://www.youtube.com/playlist?list=PLIwvCnCDnF16ZnYs7EyWOEx84RptLjKiD) and lecture notes are also scanned in as PDF files contributed by students and myself.
 
+* Lecture 25 [(audio)](https://youtu.be/EH8HIddui6E)
+  - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec25.Rmd) 
+  - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec24kap.pdf) 
 * Lecture 24 [(audio)](https://youtu.be/c6kaJL26a_c)
   - Practice Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec24.Rmd) 
   - Theory Notes [(Prof)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/lectures/lec24kap.pdf) 

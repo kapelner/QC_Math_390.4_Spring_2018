@@ -4,6 +4,8 @@ author: "Professor Adam Kapelner"
 date: "May 16, 2018"
 ---
 
+Note: this material is NOT covered on your final exam.
+
 # Statistical Inference in Linear Models
 
 We understand a lot about linear models
@@ -53,9 +55,9 @@ X = cbind(
 )
 rmse = summary(lm_mod)$sigma
 
-var_X = rmse^2 * solve(t(X) %*% X)
-var_X
-sigsq_bjs = diag(var_X)
+sample_var_B = rmse^2 * solve(t(X) %*% X)
+sample_var_B
+sigsq_bjs = diag(sample_var_B)
 sigma_bjs = sqrt(sigsq_bjs)
 sigma_bjs
 ```

@@ -1,0 +1,63 @@
+
+```{r}
+pacman::p_load(ggplot2)
+
+n = 1000
+sigma = 0.2
+
+x_t = 2 * pi
+b = 3
+xmin = 0
+xmax = 4 * pi
+
+x = runif(n, xmin, xmax)
+f_x = sin(x) + b * ifelse(x > x_t, 1, 0)
+delta = rnorm(n, 0, sigma)
+y = f_x + delta
+
+ggplot(data.frame(x = x, y = y)) + geom_point(aes(x, y), lwd = 0.3)
+ggsave("wiggly.pdf", width = 6, height = 4)
+```
+
+
+
+```{r}
+pacman::p_load_gh("coatless/ucidata")
+data(adult)
+adult = na.omit(adult) #kill any observations with missingness
+adult$native_country = NULL
+adult$education_num = NULL
+str(adult, vec.len = 2)
+```
+
+
+```{r}
+adult_train = adult[sample(1 : nrow(adult), 2000), ]
+y_train = adult_train$income
+X_train = adult_train
+X_train$income = NULL
+
+options(java.parameters = "-Xmx8000m")
+library(YARF)
+mod_rf = YARF(X_train, y_train, num_trees = 500)
+mod_rf
+```
+
+```{r}
+logistic_mod = glm(income ~ ., adult_train, family = "binomial")
+summary(logistic_mod)
+```
+
+```{r}
+n = 100
+sigma = 0.2
+xmax = 3
+z = runif(n)
+x = xmax - z + rnorm(n, 0, sigma)
+y = 20 + 80 * z + rnorm(n, 0, sigma)
+
+
+ggplot(data.frame(x = x, y = y)) + geom_point(aes(x, y), lwd = 1)
+ggsave("time_and_grade.pdf", width = 6, height = 4)
+```
+

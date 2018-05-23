@@ -108,6 +108,8 @@ My lectures can be listened to as youtube tracks [(all lectures)](https://www.yo
 
 * Final Exam is Wednesday, May 23 1:45-3:45 (in class, KY277)
 
+[(exam)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/exams/final/final.pdf) [(exam solutions)](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/exams/final/final_solutions.pdf)
+
 ## Office Hours
 
 I *want* you to come to office hours! My office hours are:

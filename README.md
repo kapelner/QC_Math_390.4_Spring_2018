@@ -6,7 +6,7 @@ This is the course homepage for Math 390.4 (and Masters level 650.3-02) for the 
 
 My lectures can be listened to as youtube tracks [(all lectures)](https://www.youtube.com/playlist?list=PLIwvCnCDnF16ZnYs7EyWOEx84RptLjKiD) and lecture notes are also scanned in as PDF files contributed by students and myself.
 
-* Presentation by [Max Sklar of Foursquare, Inc.](https://www.linkedin.com/in/max-sklar-b638464/) [(audio)](https://youtu.be/TOId9Ey55MM) [(slides)](https://docs.google.com/presentation/d/1R4Us8pSTQoYW9UIonA_fwVz4dCT98D6W-tpJBqRXipE)
+* Presentation by [Max Sklar of Foursquare, Inc.](https://www.linkedin.com/in/max-sklar-b638464/) final day, May 28 [(audio)](https://youtu.be/TOId9Ey55MM) [(slides)](https://docs.google.com/presentation/d/1R4Us8pSTQoYW9UIonA_fwVz4dCT98D6W-tpJBqRXipE)
 * Lecture 26 (Bonus)
   - [Practice Notes](https://github.com/kapelner/QC_Math_390.4_Spring_2018/blob/master/practice_lectures/lec26.Rmd)
 * Lecture 25 [(audio)](https://youtu.be/EH8HIddui6E)
